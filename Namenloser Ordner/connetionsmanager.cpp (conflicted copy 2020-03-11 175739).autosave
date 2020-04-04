@@ -1,0 +1,154 @@
+#include "connetionsmanager.h"
+
+
+ConnetionsManager::ConnetionsManager()
+    : stop(false)
+{
+    server = new TCP_SERVER();
+    server->autoCleanUpInTheEnd = false;
+}
+
+ConnetionsManager::~ConnetionsManager()
+{
+    stop = true;
+    if(this->isRunning()) {
+        this->quit();
+        if( ! this->wait(500) ) {
+            this->terminate();
+            if( ! this->wait(3000) ) {
+                std::cout << " Stop connectionmanager thread failed" << std::endl;
+            }
+        }
+    }
+
+    if( ! server->stopListening() ) {
+        std::cout << "Stop server failed" << std::endl;
+    }
+
+    delete server;
+
+    for( auto &e : Connections)
+        delete e;
+}
+
+int ConnetionsManager::start_Thread(std::vector<ConnetionsManager::PC> computers)
+{
+    this->computers = computers;
+
+    if(this->isRunning())
+        return -1;
+    this->start();
+    return this->isRunning() ? 1 : 0;
+}
+
+#include <QApplication>
+
+void ConnetionsManager::run()
+{
+//bei schule dann anderes.. ip anders port same
+    
+    if(/*schule*/ false ) {
+        while ( ! server->startListening(computers.at(0).port) ) {
+            emit showMSG("Error: Server konnte nicht gestartet werden: '" 
+                         + QString::fromStdString(server->getLastError()) 
+                         + "' -> Läuft das Program vielleicht bereits? - Retry in 10 Sekunden.");
+            sleep(10);
+        } computers.erase(computers.begin());        
+        
+    } else {
+        //Server Starten
+        for ( unsigned i = 0; i < computers.size(); ++i) {
+            if( server->startListening(computers.at(i).port) != 0 ) {
+                std::cout << "Start Server failed:" << server->getLastError() << std::endl;
+                if(i == )
+            } else {
+                emit showMSG("SERVER: " + QString::fromStdString(computers.at(i).ip) + ":" + QString::number(computers.at(i).port));
+                std::cout << "Connected to: " << computers.at(i).ip << ":" << computers.at(i).port << std::endl;
+                computers.erase(computers.begin() + i);
+                break;
+            }
+        }
+    }
+
+    
+
+
+
+    //Start Try- Verbindungsaufbau
+    for (unsigned pcID = 0; pcID < computers.size(); ++pcID) {
+        TryConnector * newTryConnector = new TryConnector();
+        if( newTryConnector->tryConnectTo(computers.at(pcID).ip, computers.at(pcID).port) ) {
+            std::cout << "Tryconnect failed to: " << computers.at(pcID).ip << ":" << computers.at(pcID).port << std::endl;
+        }
+        //
+        connect(newTryConnector, SIGNAL(finished(TryConnector*)), this, SLOT(TryConnectorFinished(TryConnector*)));
+        connect(newTryConnector, SIGNAL(startConnecting(TryConnector*)), this, SLOT(TryConnectorStartedConnecting(TryConnector*)));
+
+    }
+
+
+
+    //Nur noch accepten
+    while ( ! stop ) {
+        CLIENT newCLIENT;
+        newCLIENT.autoCleanUpInTheEnd = false; // not auto clossocket in destruktor
+
+        if( server->acceptClient(newCLIENT) != 0) {
+            std::cout << "accept failed:" << server->getLastError() << std::endl;
+            continue;
+        }
+        Peer * newPeer = new Peer(newCLIENT);
+        connect(newPeer, SIGNAL(recvdMessage(Peer*,QString)), this, SLOT(MessageWeiterLeitung(Peer*,QString)));
+        Connections.push_back(newPeer);
+        if( newPeer->startReciver() != 0 ) {
+            std::cout << "Start recver from pper failed" << std::endl;
+        }
+
+        emit ConnectionsListChanged();
+        emit showMSG(QString::fromStdString(" -> New Client: " + newCLIENT.getIpAddress() + ":" + std::to_string(newCLIENT.getPort())));
+
+        std::cout << " -> Accpedted: " << newCLIENT.getIpAddress() << std::endl;
+    }
+
+
+
+
+}
+
+void ConnetionsManager::TryConnectorFinished(TryConnector *who)
+{
+    disconnect(who, SIGNAL(finished(TryConnector*)), this, SLOT(TryConnectorFinished(TryConnector*)));
+    emit showMSG(QString::fromStdString(who->client.getLastError()));
+
+    //std::cout << who->getIp() << ": State: " << who->getState() << std::endl;
+    std::cout << who->getIp() << ": lError: " << who->client.getLastError() << std::endl;
+
+    if(who->getState() == who->OK) {
+        Peer * newPeer = new Peer(who->client);
+        connect(newPeer, SIGNAL(recvdMessage(Peer*,QString)), this, SLOT(MessageWeiterLeitung(Peer*,QString)));
+        if( newPeer->startReciver() != 0 ) {
+            std::cout << "Start recver from pper failed" << std::endl;
+        }
+
+        Connections.push_back(newPeer);
+        emit ConnectionsListChanged();
+        emit showMSG(QString::fromStdString(" -> New Client: " + who->getIp() + ":" + std::to_string(who->getPort())));
+
+    }
+
+    delete who;
+}
+
+void ConnetionsManager::TryConnectorStartedConnecting(TryConnector *who)
+{
+    connect(who, SIGNAL(startConnecting(TryConnector*)), this, SLOT(TryConnectorStartedConnecting(TryConnector*)));
+    //emit showMSG(who->getState() == who->CONNECTING ? "Connecting...." + QString::fromStdString("who->client.getLastError()") : "NON OK...");
+
+    //std::cout << "Starting connecting to: " << who->getIp() << std::endl;
+
+}
+
+void ConnetionsManager::MessageWeiterLeitung(Peer *who, QString msg)
+{
+    emit sendMessageWeiterLeitung(who, msg);
+}
