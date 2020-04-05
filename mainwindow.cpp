@@ -24,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent) :
             pcs.push_back(ConnetionsManager::PC("CR01-PC" + std::string((i < 10) ? "0" : "") + std::to_string(i), 4000));
     }
 
+    pcs.push_back(ConnetionsManager::PC("home.obermui.de", 30356));
+
 
     if( ! manager->start_Thread(Port_Home_Version, pcs) )
         exit(-1);
@@ -64,18 +66,13 @@ void MainWindow::recvedMSG(Peer *who, QString msg)
             wrongClientCountCounter++;
         if(timerForWarningMSG > 100 && (timerForWarningMSG = 0) == 0)
             if(wrongClientCountCounter > 10 && (wrongClientCountCounter = 0) == 0)
-                 ui->chat->addMsg(QString::fromStdString("<WARNUNG> Anzahl Verbindungen stimmt nicht überein...Bitte Starte das Programm neu."), Qt::AlignCenter, "orange" );
-
+                 ui->chat->addMsg("<WARNUNG> Anzahl Verbindungen stimmt nicht überein...Bitte Starte das Programm neu.", Qt::AlignCenter, "orange" );
 
      } else if(what == "MSG") {
-        //ui->chat->append(QString::fromStdString("<" + who->name + ">: " + value) );
-        //std::cout << "Recied MSG: " << value << std::endl;
         if(oldPrintStyle)
-            ui->chat->addMsgOldStyle( who->getFullName() + " " + QString::fromStdString(value), who );
-        else {
-            ui->chat->addSenderName(who);
-            ui->chat->addMsg(QString::fromStdString(value));
-        }
+            ui->chat->addMsg( who->getFullName() + " " + QString::fromStdString(value), Qt::AlignLeft, nullptr, who );
+        else
+            ui->chat->addSenderNameAndMSG(who, QString::fromStdString(value));
 
     } else if(what == "JOINED") {
         who->setName(value);
@@ -91,11 +88,9 @@ void MainWindow::recvedMSG(Peer *who, QString msg)
 
     }  else if(what == "PRIVATE_MSG") {
         if(oldPrintStyle)
-            ui->chat->addMsgOldStyle( "</MSG> " + who->getFullName() + QString::fromStdString(value), who );
-        else {
-            ui->chat->addSenderName(who, "  > flüstert dir zu");
-            ui->chat->addMsg(QString::fromStdString(value), Qt::AlignLeft, Qt::darkGray);
-        }
+            ui->chat->addMsg( "</MSG> " + who->getFullName() + QString::fromStdString(value), Qt::AlignLeft, nullptr, who);
+        else
+            ui->chat->addSenderNameAndMSG(who, QString::fromStdString(value),"  > flüstert dir zu");
 
     } else if(what == "JOIN_TIME") {
         who->setJoinTime(value);
@@ -104,13 +99,19 @@ void MainWindow::recvedMSG(Peer *who, QString msg)
         ui->chat->addMsg(QString::fromStdString("<DEBUG>: " + value), Qt::AlignCenter, "gray" );
 
     } else if(what == "VERSION") {
-        if(value != VERSION) {
+        if( stoi(value) != VERSION ) {
             ui->chat->addMsg("<ERROR> Falsche Programmversion: Client " + who->getFullName() + ": '" +
-                              QString::fromStdString( value + "' ungleich eigener: '" + VERSION + "'"), Qt::AlignCenter, "orange" );
-            who->send_to("=" ); // SOLANGE KEIN PING PONG => UPDATE TCP
-            if( who->closeSocket() != 0)
-                perror("Closesocket failed.");
-            return;
+                              QString::fromStdString( value + "' ungleich eigener: '" + std::to_string(VERSION) + "'"), Qt::AlignCenter, "red" );
+
+            if(stoi(value) < VERSION) {
+                std::cout << " -> Selber höhere Version => Closesocket to " << who->getFullName().toStdString() << std::endl;
+                if(who->isConnected()) {
+                    if(who->closeSocket() != 0)
+                        perror("Closesocket failed.");
+                } else
+                    perror("couldn't Closesocket from wrong version client: not connected");
+            } else
+                std::cout << " -> Selber niedrigere Version => Wait for Closesocket from " << who->getFullName().toStdString() << std::endl;
         }
 
     } else if(what == "") {
@@ -151,18 +152,16 @@ void MainWindow::on_inputLine_returnPressed()
                                        + manager->getConnectionList().at(i)->getJoinTime() + " VectorIndex: " + QString::number(i));
             }
 
-        } else if (line.startsWith("/-1", Qt::CaseInsensitive)) {
-            if(manager->getConnectionList().size())
-                this->manager->getConnectionList().at(0)->closeSocket();
+        } else if (line.startsWith("/-", Qt::CaseInsensitive)) {
+
 
         } else if (line.startsWith("/msg <", Qt::CaseInsensitive)) {
             line.remove(0, 5);
 
             int pos = line.indexOf("> ");
-            if(pos == -1) {
-                ui->chat->addMsg("<Console>: Error: Ungültiger Client: '" + line + "'", Qt::AlignCenter, "red");
-                return;
-            }
+            if(pos == -1)
+                return ui->chat->addMsg("<Console>: Error: Ungültiger Client: '" + line + "'", Qt::AlignCenter, "red");
+
 
             QString recver = line.left(pos + 1);
             line.remove(0, pos + 2);
@@ -174,11 +173,8 @@ void MainWindow::on_inputLine_returnPressed()
                     ok = true;
                 }
             }
-            if( !ok ) {
-                ui->chat->addMsg("<Console>: Error: Unbekannter Client: '" + recver + "'", Qt::AlignCenter, "red");
-                return;
-            }
-
+            if( !ok )
+                return ui->chat->addMsg("<Console>: Error: Unbekannter Client: '" + recver + "'", Qt::AlignCenter, "red");
 
         } else if (line.startsWith("/setPrintStyle ", Qt::CaseInsensitive)) {
             if(line.length() > 15) {
@@ -187,16 +183,16 @@ void MainWindow::on_inputLine_returnPressed()
                 else if (line[15] == '2')
                     oldPrintStyle = false;
                 else
-                    ui->chat->addMsg("<Console>: Error: Unbekannter StyleSheet: " + QString(line.at(15)), Qt::AlignCenter, Qt::red);
+                    ui->chat->addMsg("<Console>: Error: Unbekannter StyleSheet: " + QString(line.at(15)), Qt::AlignCenter, "red");
             } else
-                ui->chat->addMsg("<Console>: Error: StyleSheet ID fehlt.", Qt::AlignCenter, Qt::red);
+                ui->chat->addMsg("<Console>: Error: StyleSheet ID fehlt.", Qt::AlignCenter, "red");
 
         } else if (line.startsWith("/help", Qt::CaseInsensitive)) {
             ui->chat->addMsg("Liste:\t/help\t\t-> Gibt diese Liste aus.");
             ui->chat->addMsg("\t/clear\t\t-> Löscht den Chat (nur bei dir).");
             ui->chat->addMsg("\t/msg <Client> <msg>\t-> Privatnachricht an diesen Client");
             ui->chat->addMsg("\t\t\t     Tip: Doppelklick auf den Namen rechts in der Liste.");
-            ui->chat->addMsg("\t/setPrintStyle <1/2>\t -> AusgabeAussehen: Style 1 oder 2.");
+            ui->chat->addMsg("\t/setPrintStyle <1/2>\t-> AusgabeAussehen: Style 1 oder 2.");
 
 
         } else {
@@ -206,17 +202,13 @@ void MainWindow::on_inputLine_returnPressed()
 
     } else {
         if(oldPrintStyle)
-            ui->chat->addMsgOldStyle("<ICH>: " + line, nullptr, Qt::AlignRight );
-        else {
-            ui->chat->addSenderName(nullptr);
-            ui->chat->addMsg(line, Qt::AlignRight);
-        }
+            ui->chat->addMsg("<ICH>: " + line, Qt::AlignRight );
+        else
+            ui->chat->addSenderNameAndMSG(nullptr, line);
+        //--------------> SEND MESSAGES
         manager->sendtoAllPeers("MSG=" + line);
     }
 }
-
-
-
 
 void MainWindow::on_Connections_itemDoubleClicked(QListWidgetItem *item)
 {

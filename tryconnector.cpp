@@ -39,6 +39,9 @@ void Connector::run()
 }
 
 
+///----------------------------------------------------------------------------------------->
+
+
 TryConnector::TryConnector(void)
     : state(UNDEFINED)
 {
@@ -52,9 +55,8 @@ TryConnector::~TryConnector()
         this->quit();
         if( ! this->wait(500) ) {
             this->terminate();
-            if( ! this->wait(3000) ) {
+            if( ! this->wait(3000) )
                 std::cout << "Terminating Thread timeouted: " << __func__ << std::endl;
-            }
         }
     }
 }
@@ -72,13 +74,25 @@ int TryConnector::tryConnectTo(std::string ip, unsigned short port)
     return this->isRunning() ? 0 : 1;
 }
 
-const client_TCP_Lib &TryConnector::client() { return connector.client; }
+const client_TCP_Lib &TryConnector::client()
+{
+    return connector.client;
+}
 
-const STATE &TryConnector::getState() { return this->state; }
+const STATE &TryConnector::getState()
+{
+    return this->state;
+}
 
-const std::string &TryConnector::getIp() { return connector.ip; }
+const std::string &TryConnector::getIp()
+{
+    return connector.ip;
+}
 
-const unsigned short &TryConnector::getPort() { return connector.port; }
+const unsigned short &TryConnector::getPort()
+{
+    return connector.port;
+}
 
 
 void TryConnector::run()

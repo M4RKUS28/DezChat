@@ -13,14 +13,13 @@ class ChatWidget : public QTextEdit
     Q_OBJECT
 public:
     ChatWidget(QWidget * widget);
-    void addMsgOldStyle(QString msg, const Peer *who,Qt::Alignment alignment = Qt::AlignLeft, const QColor &color = Qt::white);
-    void addMsg(QString msg, Qt::Alignment alignment = Qt::AlignLeft, const QColor &color = Qt::black);
-    void addSenderName(const Peer *who, QString customText = "");
+    void addMsg(QString msg, Qt::Alignment alignment = Qt::AlignLeft, const QColor &color = Qt::black, const Peer *colorByPeer = nullptr);
+    void addSenderNameAndMSG(const Peer *who, QString msg, QString customText = "");
 
     QColor getColorByPeer(const Peer *peer);
 
 private:
-    void setNewColorToPeer(const Peer *peer);
+    QColor setNewColorToPeer(const Peer *peer);
 
     const QColor colorList[14] = {  Qt::black, Qt::blue, Qt::darkBlue, Qt::green, Qt::darkGreen,
                                     Qt::darkCyan, Qt::red, Qt::darkRed,

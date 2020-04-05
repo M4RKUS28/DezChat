@@ -6,7 +6,7 @@
 
 #include <QTime>
 #include <QThread>
-#define VERSION "2.2"
+#define VERSION 1
 
 
 class Peer : public QThread
