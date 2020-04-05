@@ -11,8 +11,7 @@ ChatWidget::ChatWidget(QWidget *widget)
 
 }
 
-
-void ChatWidget::addMsgOldStyle(QString msg, const Peer *who, Qt::Alignment alignment, const QColor &color)
+void ChatWidget::addMsg(QString msg, Qt::Alignment alignment, const QColor &color, const Peer *colorByPeer)
 {
     if (msg.isEmpty())
         return;
@@ -22,7 +21,7 @@ void ChatWidget::addMsgOldStyle(QString msg, const Peer *who, Qt::Alignment alig
 
     //save old color + set new color
     QColor color_ = this->textColor();
-    this->setTextColor( (color == Qt::white) ? getColorByPeer(who) : color );
+    this->setTextColor( (colorByPeer) ? getColorByPeer(colorByPeer) : color );
 
     //print msg + set aligment
     this->append(msg);
@@ -31,51 +30,19 @@ void ChatWidget::addMsgOldStyle(QString msg, const Peer *who, Qt::Alignment alig
     //set old color + scroll down
     this->setTextColor(color_);
     this->verticalScrollBar()->setValue(this->verticalScrollBar()->maximum());
-
 }
 
-void ChatWidget::addMsg(QString msg, Qt::Alignment alignment, const QColor &color)
+void ChatWidget::addSenderNameAndMSG(const Peer *who, QString msg, QString cusomMsg)
 {
     if (msg.isEmpty())
         return;
 
-    //Wichtig, da sonst die ausgewählte stelle gefärbt und verschoben wird
-    this->moveCursor(QTextCursor::End);
-
-
-    //print msg + set aligment
-    this->append(msg);
-    this->setAlignment( alignment );
-
-    //set default QTextFormat
-    this->moveCursor(QTextCursor::End);
-    QTextCursor cursor(this->textCursor());
-    cursor.select(QTextCursor::SelectionType::LineUnderCursor);
-    cursor.setCharFormat(QTextCharFormat());
-
-    this->moveCursor(QTextCursor::End);
-    moveCursor(QTextCursor::MoveOperation::Up);
-
-    //save old color + set new color
-    QColor color_ = this->textColor();
-    this->setTextColor( color );
-
-    moveCursor(QTextCursor::MoveOperation::End);
-
-    //set old color + scroll down
-    this->setTextColor(color_);
-    this->verticalScrollBar()->setValue(this->verticalScrollBar()->maximum());
-
-}
-
-void ChatWidget::addSenderName(const Peer *who, QString customText)
-{
-    this->moveCursor(QTextCursor::End);
+    ///---->Name + Time
     QColor color_ = this->textColor();
     this->setTextColor( getColorByPeer(who) );
 
     //print msg + set aligment
-    this->append(QTime::currentTime().toString("hh:mm") + ((who) ? (" ~" + who->getName()) : " Du") + customText +":");
+    this->append(QTime::currentTime().toString("hh:mm") + ((who) ? (" ~" + who->getName()) : " Du") + cusomMsg +":");
     this->setAlignment( (who) ? Qt::AlignLeft : Qt::AlignRight );
 
     this->moveCursor(QTextCursor::End);
@@ -88,22 +55,31 @@ void ChatWidget::addSenderName(const Peer *who, QString customText)
 
     //set old color + scroll down
     this->setTextColor(color_);
+    ///<----
+
+    ///---> Message
+    //print msg + set aligment
+    this->append(msg);
+
+    //set default QTextFormat
+    this->moveCursor(QTextCursor::End);
+    cursor.select(QTextCursor::SelectionType::LineUnderCursor);
+    cursor.setCharFormat(QTextCharFormat());
+
+    ///<----
+
     this->verticalScrollBar()->setValue(this->verticalScrollBar()->maximum());
 }
 
 
 QColor ChatWidget::getColorByPeer(const Peer *peer)
 {
-    if( ! colorMap.contains(peer) )
-        setNewColorToPeer(peer);
-    return colorMap[peer];
+    return ( colorMap.contains(peer) ) ? colorMap[peer] : setNewColorToPeer(peer);
 }
 
-void ChatWidget::setNewColorToPeer(const Peer *peer)
+QColor ChatWidget::setNewColorToPeer(const Peer *peer)
 {
-    size_t ColorListLength = (sizeof(colorList)/sizeof(*colorList));
-    colorMap.insert(peer, colorList[ ( colorCounter % ColorListLength ) ] );
-    colorCounter++;
+    return colorMap.insert(peer, colorList[ ( ( colorCounter ++ ) % (sizeof(colorList)/sizeof(*colorList)) ) ] ).value();
 }
 
 

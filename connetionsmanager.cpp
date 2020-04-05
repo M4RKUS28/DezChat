@@ -17,9 +17,8 @@ ConnetionsManager::~ConnetionsManager()
         this->quit();
         if( ! this->wait(500) ) {
             this->terminate();
-            if( ! this->wait(3000) ) {
+            if( ! this->wait(3000) )
                 std::cout << " Stop connectionmanager thread failed" << std::endl;
-            }
         }
     }
 
@@ -63,24 +62,18 @@ int ConnetionsManager::start_Thread(bool PORT_BASED, std::vector<ConnetionsManag
 
 void ConnetionsManager::run()
 {
-    if(startServer() != 0) {
-        emit showMSG("Fatal Error in startServer()");
-        return;
-    }
+    //Start Server
+    if(startServer() != 0)
+        return emit showMSG("Fatal Error in startServer()");
 
-    if(startAllTryConnector() != 0) {
-        emit showMSG("Fatal Error in startAllTryConnector()");
-        return;
-    }
+    //TryConnnect to All Peers in List
+    else if(startAllTryConnector() != 0)
+        return emit showMSG("Fatal Error in startAllTryConnector()");
 
-    //Nur noch accepten
-    while ( ! stop ) {
-        if(acceptClient() != 0) {
-            emit showMSG("Fatal Error in acceptClient()");
-            return;
-        }
-    }
-
+    //Accept all new Peers
+    while ( ! stop )
+        if(acceptClient() != 0)
+            return emit showMSG("Fatal Error in acceptClient()");
 }
 
 int ConnetionsManager::startAllTryConnector()
@@ -243,7 +236,7 @@ void ConnetionsManager::PeerConnectionGetsError(Peer *who)
     for (unsigned i = 0; i < Connections.size(); ++i) {
         if(Connections.at(i) == who && (++check)) {
             Connections.erase(Connections.begin() + i);
-            std::cout << "DEBUG: Delete Peer, cause getError, with Port: " << who->getPort() << std::endl;
+            //std::cout << "DEBUG: Delete Peer, cause getError, with Port: " << who->getPort() << std::endl;
             delete who;//->deleteLater();
         }
     }
