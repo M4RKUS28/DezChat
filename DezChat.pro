@@ -18,13 +18,13 @@ HEADERS      += connetionsmanager.h \
     wormio_graphicsview.h \
     wormio_scene.h
 
-INCLUDEPATH  += $$PWD/../My_LIB_TCP_V2/ \
-                $$PWD/../My_LIB_TCP_SERVER_V2/
+INCLUDEPATH  += $$PWD/../TCP_LIB_CLIENT_V2/ \
+                $$PWD/../TCP_LIB_SERVER_V2/
 
-HEADERS      += $$PWD/../My_LIB_TCP_V2/my_tcp_lib.h \
-                $$PWD/../My_LIB_TCP_SERVER_V2/server_tcp_lib.h
-SOURCES      += $$PWD/../My_LIB_TCP_V2/my_tcp_lib.cpp \
-                $$PWD/../My_LIB_TCP_SERVER_V2/server_tcp_lib.cpp
+HEADERS      += $$PWD/../TCP_LIB_CLIENT_V2/my_tcp_lib.h \
+                $$PWD/../TCP_LIB_SERVER_V2/server_tcp_lib.h
+SOURCES      += $$PWD/../TCP_LIB_CLIENT_V2/my_tcp_lib.cpp \
+                $$PWD/../TCP_LIB_SERVER_V2/server_tcp_lib.cpp
 
 
 QT       += core gui
