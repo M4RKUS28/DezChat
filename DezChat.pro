@@ -8,11 +8,15 @@ SOURCES      += \
     connetionsmanager.cpp \
     peer.cpp \
     tryconnector.cpp \
-    chatwidget.cpp
+    chatwidget.cpp \
+    wormio_graphicsview.cpp \
+    wormio_scene.cpp
 HEADERS      += connetionsmanager.h \
     peer.h \
     tryconnector.h \
-    chatwidget.h
+    chatwidget.h \
+    wormio_graphicsview.h \
+    wormio_scene.h
 
 INCLUDEPATH  += $$PWD/../My_LIB_TCP_V2/ \
                 $$PWD/../My_LIB_TCP_SERVER_V2/

@@ -3,7 +3,8 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), manager(new ConnetionsManager),timerForWarningMSG(0), wrongClientCountCounter(0), oldPrintStyle(false)
+    ui(new Ui::MainWindow), manager(new ConnetionsManager),timerForWarningMSG(0), wrongClientCountCounter(0), oldPrintStyle(false),
+    view(this)
 {
     ui->setupUi(this);
 
@@ -13,25 +14,31 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     std::vector<ConnetionsManager::PC> pcs;
-    bool Port_Home_Version = true;
+    bool Port_Home_Version = false;
 
     if(/* DISABLES CODE: Schul-Version */ Port_Home_Version) {
         for (unsigned short i = 0; i < 32; ++i)
-            pcs.push_back(ConnetionsManager::PC("127.0.0.1", 4100 + i));
+            pcs.push_back(ConnetionsManager::PC("127.0.0.1", 5000 + i));
     } else {
-        pcs.push_back(ConnetionsManager::PC("SERVER_PORT", 4000));
-        for (int i = 0; i < 34; ++i)
-            pcs.push_back(ConnetionsManager::PC("CR01-PC" + std::string((i < 10) ? "0" : "") + std::to_string(i), 4000));
+        pcs.push_back(ConnetionsManager::PC("SERVER_PORT", 5000));
+        for (int i = 0; i < 35; ++i) {
+            pcs.push_back(ConnetionsManager::PC("CR01-PC" + std::string((i < 10) ? "0" : "") + std::to_string(i), 5000));
+            //pcs.push_back(ConnetionsManager::PC("CR02-PC" + std::string((i < 10) ? "0" : "") + std::to_string(i), 5000));
+        }
+
     }
-
-    pcs.push_back(ConnetionsManager::PC("home.obermui.de", 30356));
-
 
     if( ! manager->start_Thread(Port_Home_Version, pcs) )
         exit(-1);
     updateClientList();
 
     timerID = startTimer(100);
+
+    //Game View
+    view.setGeometry( 10, 10, this->width() - 20, this->height() - 20);
+    view.hide();
+    //setMouseTracking(true);
+    //this->setFocus();
 }
 
 MainWindow::~MainWindow()
@@ -139,7 +146,13 @@ void MainWindow::on_inputLine_returnPressed()
     QString line = ui->inputLine->text();
     ui->inputLine->clear();
 
-    if(line.startsWith('/')) {
+    if(line == "lol") {
+        this->joinGame();
+        return;
+
+
+
+    } else if(line.startsWith('/')) {
         ui->chat->addMsg("Executing: '" + line + "'...");
 
         if(line.startsWith("/clear", Qt::CaseInsensitive)) {
@@ -214,5 +227,41 @@ void MainWindow::on_Connections_itemDoubleClicked(QListWidgetItem *item)
 {
     //std::cout << "Item gedoppelklickt: "<<item->text().toStdString() << std::endl;
     ui->inputLine->setText("/msg " + item->text() + " ");
+}
+
+void MainWindow::joinGame()
+{
+    //set chat things invisible
+    this->ui->chat->hide();
+    this->ui->Connections->hide();
+    this->ui->inputLine->hide();
+    this->ui->label->hide();
+
+
+    //set game visible
+    this->view.show();
+
+
+}
+
+void MainWindow::leaveGame()
+{
+    //make game invisible
+    this->view.hide();
+
+
+    //set old things visible
+    this->ui->chat->hide();
+    this->ui->Connections->hide();
+    this->ui->inputLine->hide();
+    this->ui->label->hide();
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent * e)
+{
+    std::cout << "Mouse: " << e->x() << " " << e->y() << std::endl;
+
+    //this->view.scene->rect->moveBy(1, 1);
+    this->view.scene->updateTest(e->x(), e->y());
 }
 

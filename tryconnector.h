@@ -12,10 +12,9 @@ enum STATE {
     OK = 0,
     UNDEFINED = 1,
     UNDEFINED_ERROR = 2,
-    TIME_OUT_TRY_OUT = 3
-
 };
 
+/*
 
 class Connector : public QThread
 {
@@ -36,7 +35,7 @@ private:
     int returnValue;
 
 };
-
+*/
 
 class TryConnector: public QThread
 {
@@ -48,15 +47,22 @@ public:
 
     int tryConnectTo(std::string ip, unsigned short port);
 
+
     const STATE &getState();
+
     const std::string &getIp();
     const unsigned short &getPort();
     const client_TCP_Lib &client();
 
+
+
 private:
     void run();
     STATE state;
-    Connector connector;
+    //Connector connector;
+    std::string ip;
+    unsigned short port;
+    client_TCP_Lib client_;
 
 signals:
     void finished(TryConnector * who);

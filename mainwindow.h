@@ -6,6 +6,9 @@
 #include "connetionsmanager.h"
 
 
+#include "wormio_graphicsview.h"
+
+#include <QMouseEvent>
 
 namespace Ui {
 class MainWindow;
@@ -18,7 +21,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void timerEvent(QTimerEvent *);
+    void timerEvent(QTimerEvent *) override;
 
 private slots:
     void printInfo(QString str);
@@ -33,6 +36,18 @@ private:
     ConnetionsManager *manager;
     int timerID, timerForWarningMSG, wrongClientCountCounter;
     bool oldPrintStyle;
+
+
+
+//Game
+
+public:
+    void joinGame();
+    void leaveGame();
+
+    void mouseMoveEvent(QMouseEvent *e) override;
+
+    WormIO_GraphicsView view;
 };
 
 #endif // MAINWINDOW_H

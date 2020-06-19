@@ -23,8 +23,9 @@ ConnetionsManager::~ConnetionsManager()
     }
 
     //stop server
-    if( server->stopListening() != 0 )
-        std::cout << "Stop server failed: " << server->getLastError() << std::endl;
+    if( server->isListening() )
+        if( server->stopListening() != 0 )
+            std::cout << "Stop server failed: " << server->getLastError() << std::endl;
 
     //delete server
     delete server;
@@ -79,7 +80,7 @@ void ConnetionsManager::run()
 int ConnetionsManager::startAllTryConnector()
 {
     for (auto &pc : computers) {
-       // std::cout << "Start tryconnect to: " << pc.ip << ":" << pc.port << std::endl;
+        //std::cout << "Start tryconnect to: " << pc.ip << ":" << pc.port << std::endl;
 
         TryConnector * newTryConnector = new TryConnector();
         newTryConnector->deleteLater(); ///<--------------------------------Test--------------------------------------------
@@ -103,11 +104,14 @@ int ConnetionsManager::startServer()
             sleep(3);
         }
         emit showMSG("SERVER gestartet: @" + QString::fromStdString(server->getHostName()) + ":" +  QString::number(computers.at(0).port));
+        std::cout << "Server gestartet auf Port: " << computers.at(0).port << std::endl;
+
 
         //clear
         computers.erase(computers.begin());
         std::string hostname = server->getHostName();
 
+        //remove own ip, so that you don't connect to your own server
         for ( unsigned i = 0; i < computers.size(); ++i)
             if(computers.at(i).ip == hostname)
                 computers.erase(computers.begin() + i);
@@ -208,8 +212,8 @@ void ConnetionsManager::TryConnectorFinished(TryConnector *who)
 
         emit ConnectionsListChanged();
         //emit showMSG(QString::fromStdString(" -> New Client: " + who->getIp() + ":" + std::to_string(who->getPort())));
-    } else if (who->getState() == STATE::TIME_OUT_TRY_OUT) {
-        std::cout << "-> Connect to " << who->getIp() << ":" << who->getPort() << " timedout." << std::endl;
+//    } else if (who->getState() == STATE::TIME_OUT_TRY_OUT) {
+//        std::cout << "-> Connect to " << who->getIp() << ":" << who->getPort() << " timedout." << std::endl;
 
     } else if(who->getState() == STATE::UNDEFINED) {
         std::cout << "-> Thread for Connecting to " << who->getIp() << ":" << who->getPort() << " never started." << std::endl;
