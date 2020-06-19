@@ -6,7 +6,7 @@
 #include "connetionsmanager.h"
 
 
-#include "wormio_graphicsview.h"
+#include "wormio_game/wormio_graphicsview.h"
 
 #include <QMouseEvent>
 

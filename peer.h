@@ -6,7 +6,7 @@
 
 #include <QTime>
 #include <QThread>
-#define VERSION 1
+#define VERSION 2
 
 
 class Peer : public QThread
@@ -19,7 +19,7 @@ public:
 
     void send_to(QString msg);
     int startReciver();
-    void sendInfoData(const unsigned short ownServerListeningPort);
+    void sendInfoData(const unsigned short ownServerListeningPort, bool adminstate);
 
     int closeSocket();
     bool isConnected();
@@ -31,6 +31,9 @@ public:
     QString getUserName() const;
     QString getFullName() const;
     QString getJoinTime() const;
+
+    bool isAdmin() const;
+    void set_isAdmin(bool state);
 
     void setConnectedToPort(unsigned short port);
     void setName(std::string name);
@@ -45,7 +48,7 @@ private:
     client_TCP_Lib cli_v2;
 
     const bool isCLIENT;
-    bool stop;
+    bool stop, is_Admin;
     unsigned short port_connectedTo;
     std::string name, ip_connectedTo, joinTime;
 

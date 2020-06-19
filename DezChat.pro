@@ -9,14 +9,14 @@ SOURCES      += \
     peer.cpp \
     tryconnector.cpp \
     chatwidget.cpp \
-    wormio_graphicsview.cpp \
-    wormio_scene.cpp
+    wormio_game/wormio_graphicsview.cpp \
+    wormio_game/wormio_scene.cpp
 HEADERS      += connetionsmanager.h \
     peer.h \
     tryconnector.h \
     chatwidget.h \
-    wormio_graphicsview.h \
-    wormio_scene.h
+    wormio_game/wormio_graphicsview.h \
+    wormio_game/wormio_scene.h
 
 INCLUDEPATH  += $$PWD/../TCP_LIB_CLIENT_V2/ \
                 $$PWD/../TCP_LIB_SERVER_V2/
@@ -28,6 +28,7 @@ SOURCES      += $$PWD/../TCP_LIB_CLIENT_V2/my_tcp_lib.cpp \
 
 
 QT       += core gui
+LIBS+= -lws2_32
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
