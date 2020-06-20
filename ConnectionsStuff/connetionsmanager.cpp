@@ -80,7 +80,7 @@ void ConnetionsManager::run()
 int ConnetionsManager::startAllTryConnector()
 {
     for (auto &pc : computers) {
-        //std::cout << "Start tryconnect to: " << pc.ip << ":" << pc.port << std::endl;
+        std::cout << "Start tryconnect to: " << pc.ip << ":" << pc.port << std::endl;
 
         TryConnector * newTryConnector = new TryConnector();
         newTryConnector->deleteLater(); ///<--------------------------------Test--------------------------------------------

@@ -54,7 +54,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Message:</string>
+        <string>Neu Nachricht:</string>
        </property>
       </widget>
      </item>

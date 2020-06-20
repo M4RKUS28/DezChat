@@ -171,7 +171,7 @@ void MainWindow::on_inputLine_returnPressed()
     QString line = ui->inputLine->text();
     ui->inputLine->clear();
 
-    if(line == "lol") {
+    if( /* line == "lol" */ false) {
         this->joinGame();
         return;
 
