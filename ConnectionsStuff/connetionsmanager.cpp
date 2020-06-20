@@ -2,7 +2,7 @@
 
 
 ConnetionsManager::ConnetionsManager()
-    : stop(false)
+    : isAdmin(false), stop(false)
 {
     server = new TCP_SERVER();
     server->autoCleanUpInTheEnd = false;
@@ -177,7 +177,7 @@ int ConnetionsManager::acceptClient()
     }
 
     //Send name, port, ip ...
-    newPeer->sendInfoData(server->getListeningPort());
+    newPeer->sendInfoData(server->getListeningPort(), isAdmin);
 
     emit ConnectionsListChanged();
     //emit showMSG(QString::fromStdString(" -> New Client: " + newCLIENT.getIpAddress() + ":" + std::to_string(newCLIENT.getPort())));
@@ -208,7 +208,7 @@ void ConnetionsManager::TryConnectorFinished(TryConnector *who)
         }
 
         //Send name, port, ip ...
-        newPeer->sendInfoData(server->getListeningPort());
+        newPeer->sendInfoData(server->getListeningPort(), isAdmin);
 
         emit ConnectionsListChanged();
         //emit showMSG(QString::fromStdString(" -> New Client: " + who->getIp() + ":" + std::to_string(who->getPort())));

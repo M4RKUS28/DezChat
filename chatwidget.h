@@ -5,7 +5,7 @@
 #include <QMap>
 #include <QScrollBar>
 
-#include "peer.h"
+#include "ConnectionsStuff/peer.h"
 
 
 class ChatWidget : public QTextEdit

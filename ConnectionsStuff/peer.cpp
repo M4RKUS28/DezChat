@@ -1,7 +1,7 @@
 #include "peer.h"
 
 Peer::Peer(const CLIENT &cli)
-    : cli_v1(cli), isCLIENT(true), stop(false), name("UNKNOWN")
+    : cli_v1(cli), isCLIENT(true), stop(false), is_Admin(false), name("UNKNOWN")
 {
     this->cli_v1.autoCleanUpInTheEnd = false;
     this->cli_v2.autoCleanUpInTheEnd = false;
@@ -11,7 +11,7 @@ Peer::Peer(const CLIENT &cli)
 }
 
 Peer::Peer(const client_TCP_Lib &cli, std::string ip_connectedTo, unsigned short port_connectedTo)
-    :  cli_v2(cli), isCLIENT(false), stop(false), port_connectedTo(port_connectedTo), name("UNKNOWN"), ip_connectedTo(ip_connectedTo)
+    :  cli_v2(cli), isCLIENT(false), stop(false), is_Admin(false), port_connectedTo(port_connectedTo), name("UNKNOWN"), ip_connectedTo(ip_connectedTo)
 {
     this->cli_v1.autoCleanUpInTheEnd = false;
     this->cli_v2.autoCleanUpInTheEnd = false;
@@ -53,12 +53,15 @@ int Peer::startReciver()
     return this->isRunning() ? 0 : 1;
 }
 
-void Peer::sendInfoData(const unsigned short ownServerListeningPort)
+void Peer::sendInfoData(const unsigned short ownServerListeningPort, bool adminstate)
 {
     this->send_to("PORT=" + QString::number(ownServerListeningPort));
     this->send_to("JOIN_TIME=" + QTime::currentTime().toString() );
     this->send_to("JOINED=" + getUserName() );
     this->send_to("VERSION=" + QString::number(VERSION) );
+
+    this->send_to("adminstatus=" + QString(adminstate ? "true" : "false"));
+
 }
 
 int Peer::closeSocket()
@@ -105,6 +108,16 @@ QString Peer::getFullName() const
 QString Peer::getJoinTime() const
 {
     return QString::fromStdString(joinTime);
+}
+
+bool Peer::isAdmin() const
+{
+    return is_Admin;
+}
+
+void Peer::set_isAdmin(bool state)
+{
+    is_Admin = state;
 }
 
 void Peer::setConnectedToPort(unsigned short port)

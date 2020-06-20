@@ -3,10 +3,10 @@
 
 #include <QListWidget>
 #include <QMainWindow>
-#include "connetionsmanager.h"
+#include "ConnectionsStuff/connetionsmanager.h"
 
 
-#include "wormio_graphicsview.h"
+#include "wormio_game/wormio_graphicsview.h"
 
 #include <QMouseEvent>
 

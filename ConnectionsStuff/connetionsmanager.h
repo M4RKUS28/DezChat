@@ -28,6 +28,8 @@ public:
     void sendtoAllPeers(QString msg);
     std::vector<Peer *> &getConnectionList();
 
+     bool isAdmin;
+
 
 private:
     void run();
@@ -40,6 +42,8 @@ private:
     std::vector<PC> computers;
     std::vector<Peer*> Connections;
     bool stop, PORT_BASED;
+
+
 
 
 
