@@ -94,10 +94,24 @@ void MainWindow::recvedMSG(Peer *who, QString msg)
         updateClientList();
 
     }  else if(what == "PRIVATE_MSG") {
+        size_t pos1 = value.find("#");
+        if(pos1 == std::string::npos) {
+            std::cout << "-> Error: PRIVATE_MSG_MESSAGE is invalid: no # found" << std::endl;
+            return;
+        }
+        size_t pos2 = value.find("#", pos1 + 1);
+        if(pos2 == std::string::npos) {
+            std::cout << "-> Error: PRIVATE_MSG_MESSAGE is invalid: no second # found" << std::endl;
+            return;
+        }
+
+        std::string toWho = value.substr(pos1 + 1, pos2 - pos1 - 1);
+        value.erase(pos1, pos2 +1);
+
         if(oldPrintStyle)
-            ui->chat->addMsg( "</MSG> " + who->getFullName() + QString::fromStdString(value), Qt::AlignLeft, nullptr, who);
+            ui->chat->addMsg( "</MSG> " + who->getFullName() + " -> " + QString::fromStdString(toWho) + ": " + QString::fromStdString(value), Qt::AlignLeft, nullptr, who);
         else
-            ui->chat->addSenderNameAndMSG(who, QString::fromStdString(value),"  > flüstert dir zu");
+            ui->chat->addSenderNameAndMSG(who, QString::fromStdString(value),"  > flüstert " + QString::fromStdString(toWho) +" zu" + ((toWho == "dir") ? "" : " (ADMIN CATCHED)"));
 
     } else if(what == "JOIN_TIME") {
         who->setJoinTime(value);
@@ -127,6 +141,14 @@ void MainWindow::recvedMSG(Peer *who, QString msg)
     } else if(what == "adminstatus") {
         if (value == "true") {
             who->set_isAdmin(true);
+            if(manager->isAdmin) {
+                ui->chat->addMsg( who->getName() + " hat sich zum Admin befördert.", Qt::AlignCenter, "orange");
+            }
+        } else if ( value == "gofalse") {
+            who->set_isAdmin(false);
+            if(manager->isAdmin) {
+                ui->chat->addMsg( who->getName() + " hat sich vom Admin degratiert.", Qt::AlignCenter, "orange");
+            }
         }
     } else {
         std::cout << "ERROR: UNKNOWN MSG: '" << msg.toStdString() << std::endl;
@@ -185,8 +207,11 @@ void MainWindow::on_inputLine_returnPressed()
             bool ok = false;
             for( auto &c : manager->getConnectionList() ) {
                 if( recver == c->getFullName() || c->isAdmin() ) {
-                    c->send_to( "PRIVATE_MSG=" + line );
-                    ok = true;
+                                                            //Wenn empfänger überinstimmt auch wenn dieser admin ist, dann verwende "dir"
+                    c->send_to( "PRIVATE_MSG=#" + QString( ( (recver == c->getFullName()) ? "dir" : recver ) ) + "#" + line );
+                    //Nur wenn ein nicht admin empfänger gefunden worden ist, setze on auf true, sonst kommt keine "kein passender client" nachricht
+                    if( recver == c->getFullName() )
+                        ok = true;
                 }
             }
             if( !ok )
@@ -217,7 +242,15 @@ void MainWindow::on_inputLine_returnPressed()
                 manager->sendtoAllPeers("adminstatus=true");
                 manager->isAdmin = true;
                 ui->chat->addMsg("<Console> Adminstatus confirmed", Qt::AlignCenter, "red");
-            };
+            }
+
+        } else if (line.startsWith("/logout", Qt::CaseInsensitive)) {
+            if(manager->isAdmin) {
+                manager->sendtoAllPeers("adminstatus=gofalse");
+                manager->isAdmin = false;
+                ui->chat->addMsg("<Console> Adminstatus removed", Qt::AlignCenter, "red");
+            }
+
         } else {
             ui->chat->addMsg("<Console>: Error: Unbekannter Befehl: '" + line + "'", Qt::AlignCenter, "red");
         }
