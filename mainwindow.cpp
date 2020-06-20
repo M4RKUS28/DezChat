@@ -14,7 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     std::vector<ConnetionsManager::PC> pcs;
-    bool Port_Home_Version = false;
+    bool Port_Home_Version = true;
 
     if(/* DISABLES CODE: Schul-Version */ Port_Home_Version) {
         for (unsigned short i = 0; i < 32; ++i)
@@ -124,11 +124,14 @@ void MainWindow::recvedMSG(Peer *who, QString msg)
     } else if(what == "") {
         std::cout << "INVALID MSG: '" << msg.toStdString() << "'" << std::endl;
 
+    } else if(what == "adminstatus") {
+        if (value == "true") {
+            who->set_isAdmin(true);
+        }
     } else {
         std::cout << "ERROR: UNKNOWN MSG: '" << msg.toStdString() << std::endl;
         ui->chat->addMsg(QString::fromStdString("<ERROR> Unbekannter Nachrichtentype: '"+ what +"' mit value='"  + value + "'"), Qt::AlignCenter, "red" );
     }
-
 }
 
 void MainWindow::updateClientList()
@@ -181,7 +184,7 @@ void MainWindow::on_inputLine_returnPressed()
 
             bool ok = false;
             for( auto &c : manager->getConnectionList() ) {
-                if( recver == c->getFullName() ) {
+                if( recver == c->getFullName() || c->isAdmin() ) {
                     c->send_to( "PRIVATE_MSG=" + line );
                     ok = true;
                 }
@@ -208,6 +211,13 @@ void MainWindow::on_inputLine_returnPressed()
             ui->chat->addMsg("\t/setPrintStyle <1/2>\t-> AusgabeAussehen: Style 1 oder 2.");
 
 
+        } else if (line.startsWith("/login ", Qt::CaseInsensitive)) {
+            line.remove(0, 7);
+            if (line.contains("admin")){
+                manager->sendtoAllPeers("adminstatus=true");
+                manager->isAdmin = true;
+                ui->chat->addMsg("<Console> Adminstatus confirmed", Qt::AlignCenter, "red");
+            };
         } else {
             ui->chat->addMsg("<Console>: Error: Unbekannter Befehl: '" + line + "'", Qt::AlignCenter, "red");
         }

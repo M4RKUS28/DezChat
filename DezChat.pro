@@ -9,25 +9,26 @@ SOURCES      += \
     peer.cpp \
     tryconnector.cpp \
     chatwidget.cpp \
-    wormio_graphicsview.cpp \
-    wormio_scene.cpp
+    wormio_game/wormio_graphicsview.cpp \
+    wormio_game/wormio_scene.cpp
 HEADERS      += connetionsmanager.h \
     peer.h \
     tryconnector.h \
     chatwidget.h \
-    wormio_graphicsview.h \
-    wormio_scene.h
+    wormio_game/wormio_graphicsview.h \
+    wormio_game/wormio_scene.h
 
-INCLUDEPATH  += $$PWD/../My_LIB_TCP_V2/ \
-                $$PWD/../My_LIB_TCP_SERVER_V2/
+INCLUDEPATH  += $$PWD/../TCP_LIB_CLIENT_V2/ \
+                $$PWD/../TCP_LIB_SERVER_V2/
 
-HEADERS      += $$PWD/../My_LIB_TCP_V2/my_tcp_lib.h \
-                $$PWD/../My_LIB_TCP_SERVER_V2/server_tcp_lib.h
-SOURCES      += $$PWD/../My_LIB_TCP_V2/my_tcp_lib.cpp \
-                $$PWD/../My_LIB_TCP_SERVER_V2/server_tcp_lib.cpp
+HEADERS      += $$PWD/../TCP_LIB_CLIENT_V2/my_tcp_lib.h \
+                $$PWD/../TCP_LIB_SERVER_V2/server_tcp_lib.h
+SOURCES      += $$PWD/../TCP_LIB_CLIENT_V2/my_tcp_lib.cpp \
+                $$PWD/../TCP_LIB_SERVER_V2/server_tcp_lib.cpp
 
 
 QT       += core gui
+LIBS+= -lws2_32
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
