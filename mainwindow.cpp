@@ -3,8 +3,7 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), manager(new ConnetionsManager),timerForWarningMSG(0), wrongClientCountCounter(0), oldPrintStyle(false),
-    view(this)
+    ui(new Ui::MainWindow), manager(new ConnetionsManager),timerForWarningMSG(0), wrongClientCountCounter(0), oldPrintStyle(false)
 {
     ui->setupUi(this);
 
@@ -34,11 +33,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     timerID = startTimer(100);
 
-    //Game View
-    view.setGeometry( 10, 10, this->width() - 20, this->height() - 20);
-    view.hide();
+
+    //------------------>Game View
+
+    game = new Game(this);
+
+    game->setGeometry( 10, 10, this->width() - 20, this->height() - 20);
+    game->hide();
+
+
+    this->joinGame();
+
     //setMouseTracking(true);
-    //this->setFocus();
+    //view.scene->installEventFilter(this);
+
 }
 
 MainWindow::~MainWindow()
@@ -49,11 +57,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::timerEvent(QTimerEvent *)
+/*void MainWindow::timerEvent(QTimerEvent *)
 {
     manager->sendtoAllPeers("PING=" + QString::number(manager->getConnectionList().size()) );
     timerForWarningMSG++;
-}
+}*/
 
 
 void MainWindow::printInfo(QString str)
@@ -171,7 +179,7 @@ void MainWindow::on_inputLine_returnPressed()
     QString line = ui->inputLine->text();
     ui->inputLine->clear();
 
-    if( /* line == "lol" */ false) {
+    if(  line == "lol" ) {
         this->joinGame();
         return;
 
@@ -282,7 +290,8 @@ void MainWindow::joinGame()
 
 
     //set game visible
-    this->view.show();
+    this->game->show();
+    this->game->setFocus();
 
 
 }
@@ -290,7 +299,7 @@ void MainWindow::joinGame()
 void MainWindow::leaveGame()
 {
     //make game invisible
-    this->view.hide();
+    this->game->hide();
 
 
     //set old things visible
@@ -300,11 +309,37 @@ void MainWindow::leaveGame()
     this->ui->label->hide();
 }
 
-void MainWindow::mouseMoveEvent(QMouseEvent * e)
+/*
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
-    std::cout << "Mouse: " << e->x() << " " << e->y() << std::endl;
+    std::cout << "got evet" << std::endl;
 
-    //this->view.scene->rect->moveBy(1, 1);
-    this->view.scene->updateTest(e->x(), e->y());
+    //  this->view.scene->updateTest(e->x(), e->y());
+    if(watched == view.scene){
+            // press event
+            QGraphicsSceneMouseEvent *mouseSceneEvent;
+            if(event->type() == QEvent::GraphicsSceneMousePress){
+                mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
+                qDebug() << mouseSceneEvent->scenePos()<<mouseSceneEvent->lastScenePos();
+               // your logic here
+            }
+            // move event
+            else if (event->type() == QEvent::GraphicsSceneMouseMove) {
+                mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
+                qDebug() << mouseSceneEvent->scenePos()<<mouseSceneEvent->lastScenePos();
+                // your logic here
+
+                std::cout << "Moved to: " << mouseSceneEvent->scenePos().x() << " " << mouseSceneEvent->scenePos().y() << std::endl;
+            }
+            // release event
+            else if (event->type() == QEvent::GraphicsSceneMouseRelease) {
+                mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
+                qDebug() << mouseSceneEvent->scenePos()<<mouseSceneEvent->lastScenePos();
+                // your logic here
+            }
+        }
+
+    return QMainWindow::eventFilter(watched, event);
 }
 
+*/

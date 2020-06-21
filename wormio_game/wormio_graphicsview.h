@@ -12,10 +12,12 @@ public:
     WormIO_GraphicsView(QWidget * parent);
     ~WormIO_GraphicsView();
 
-
     WormIO_Scene * scene;
 
-    void mouseMoveEvent(QMouseEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
+private:
+
 
 };
 

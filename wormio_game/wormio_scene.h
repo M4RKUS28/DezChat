@@ -7,6 +7,7 @@
 #include <QGraphicsEllipseItem>
 #include <QGraphicsPolygonItem>
 
+#include <QGraphicsLineItem>
 
 class WormIO_Scene : public QGraphicsScene
 {
@@ -14,14 +15,27 @@ class WormIO_Scene : public QGraphicsScene
 public:
     WormIO_Scene();
 
-    QGraphicsEllipseItem * rect;
+    QGraphicsEllipseItem * circel;
     QGraphicsPolygonItem * trangle;
+    QGraphicsLineItem * line;
+    QGraphicsLineItem * line2;
 
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    QGraphicsLineItem * line3;
 
-    void updateTest(int x, int y);
+    QGraphicsLineItem * line4;
+
+    QGraphicsRectItem r1, r2;
+
+
+    void timerEvent(QTimerEvent *) override;
+
+    void updateTest(int x_P2, int y_P2);
 
     double x, y;
+
+
+
+
 
 };
 

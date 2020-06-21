@@ -9,6 +9,10 @@ SOURCES      += \
     ConnectionsStuff/peer.cpp \
     ConnectionsStuff/tryconnector.cpp \
     chatwidget.cpp \
+    wormio_game/enemy.cpp \
+    wormio_game/enemymanager.cpp \
+    wormio_game/game.cpp \
+    wormio_game/player.cpp \
     wormio_game/wormio_graphicsview.cpp \
     wormio_game/wormio_scene.cpp
 
@@ -17,6 +21,10 @@ HEADERS      += \
     ConnectionsStuff/peer.h \
     ConnectionsStuff/tryconnector.h \
     chatwidget.h \
+    wormio_game/enemy.h \
+    wormio_game/enemymanager.h \
+    wormio_game/game.h \
+    wormio_game/player.h \
     wormio_game/wormio_graphicsview.h \
     wormio_game/wormio_scene.h
 
@@ -67,3 +75,6 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    resources.qrc

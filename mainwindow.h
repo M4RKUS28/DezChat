@@ -5,10 +5,13 @@
 #include <QMainWindow>
 #include "ConnectionsStuff/connetionsmanager.h"
 
+#include "wormio_game/game.h"
 
-#include "wormio_game/wormio_graphicsview.h"
+#include <iostream>
+#include <QGraphicsSceneMouseEvent>
+#include <qdebug.h>
 
-#include <QMouseEvent>
+
 
 namespace Ui {
 class MainWindow;
@@ -21,7 +24,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void timerEvent(QTimerEvent *) override;
 
 private slots:
     void printInfo(QString str);
@@ -45,9 +47,8 @@ public:
     void joinGame();
     void leaveGame();
 
-    void mouseMoveEvent(QMouseEvent *e) override;
+    Game * game;
 
-    WormIO_GraphicsView view;
 };
 
 #endif // MAINWINDOW_H

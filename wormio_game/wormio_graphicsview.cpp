@@ -2,19 +2,25 @@
 
 
 WormIO_GraphicsView::WormIO_GraphicsView(QWidget *parent)
-    : QGraphicsView(parent)
+    : QGraphicsView()
 {
 
     scene = new WormIO_Scene();
     this->setScene(scene);
 
 
-    //setMouseTracking(true);
+
+   // setMouseTracking(true);
     //this->setFocus();
 
-    this->centerOn( this->scene->rect );
+    //this->centerOn( this->scene->trangle );
 
     //this->viewport()->setMouseTracking(true);
+
+    scene->installEventFilter(this);
+
+    setMouseTracking(true);
+
 
 }
 
@@ -30,10 +36,35 @@ WormIO_GraphicsView::~WormIO_GraphicsView()
 
 
 #include <iostream>
+#include <QGraphicsSceneMouseEvent>
+#include <qdebug.h>
 
-void WormIO_GraphicsView::mouseMoveEvent(QMouseEvent *event)
+
+bool WormIO_GraphicsView::eventFilter(QObject *watched, QEvent *event)
 {
-    std::cout << " Mouse: " << event->x() << " " << event->y() << " in graphicsview" << std::endl;
+    if(watched == scene){
+            // press event
+            QGraphicsSceneMouseEvent *mouseSceneEvent;
+            if(event->type() == QEvent::GraphicsSceneMousePress){
+                mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
+                qDebug() << mouseSceneEvent->scenePos()<<mouseSceneEvent->lastScenePos();
+               // your logic here
+            }
+            // move event
+            else if (event->type() == QEvent::GraphicsSceneMouseMove) {
+                mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
+                qDebug() << mouseSceneEvent->scenePos()<<mouseSceneEvent->lastScenePos();
+                // your logic here
 
+                scene->updateTest(mouseSceneEvent->scenePos().x(), mouseSceneEvent->scenePos().y());
+
+            }
+            // release event
+            else if (event->type() == QEvent::GraphicsSceneMouseRelease) {
+                mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
+                qDebug() << mouseSceneEvent->scenePos()<<mouseSceneEvent->lastScenePos();
+                // your logic here
+            }
+        }
+        return QGraphicsView::eventFilter(watched, event);
 }
-
