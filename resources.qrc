@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>wormio_game/Ressources/test.png</file>
+        <file>wormio_game/Ressources/slitherio_background_543a4c3cc8.jpg</file>
     </qresource>
 </RCC>

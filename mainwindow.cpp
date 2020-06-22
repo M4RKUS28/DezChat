@@ -31,14 +31,13 @@ MainWindow::MainWindow(QWidget *parent) :
         exit(-1);
     updateClientList();
 
-    timerID = startTimer(100);
+    timerID = startTimer(100); // 100
 
 
     //------------------>Game View
 
     game = new Game(this);
 
-    game->setGeometry( 10, 10, this->width() - 20, this->height() - 20);
     game->hide();
 
 
@@ -57,11 +56,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-/*void MainWindow::timerEvent(QTimerEvent *)
+void MainWindow::timerEvent(QTimerEvent * e)
 {
     manager->sendtoAllPeers("PING=" + QString::number(manager->getConnectionList().size()) );
     timerForWarningMSG++;
-}*/
+    game->player->Worm.at(0)->timerEvent(e);
+}
 
 
 void MainWindow::printInfo(QString str)
@@ -282,6 +282,9 @@ void MainWindow::on_Connections_itemDoubleClicked(QListWidgetItem *item)
 
 void MainWindow::joinGame()
 {
+    this->setFixedSize(1200, 800);
+    game->setGeometry( 10, 10, this->width() - 20, this->height() - 20);
+
     //set chat things invisible
     this->ui->chat->hide();
     this->ui->Connections->hide();
@@ -308,6 +311,8 @@ void MainWindow::leaveGame()
     this->ui->inputLine->hide();
     this->ui->label->hide();
 }
+
+
 
 /*
 bool MainWindow::eventFilter(QObject *watched, QEvent *event)

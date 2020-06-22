@@ -8,7 +8,7 @@
 #include "wormio_game/game.h"
 
 #include <iostream>
-#include <QGraphicsSceneMouseEvent>
+
 #include <qdebug.h>
 
 
@@ -25,6 +25,7 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void timerEvent(QTimerEvent * e);
 private slots:
     void printInfo(QString str);
     void recvedMSG(Peer *who, QString msg);
@@ -46,6 +47,7 @@ private:
 public:
     void joinGame();
     void leaveGame();
+
 
     Game * game;
 
