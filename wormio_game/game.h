@@ -5,7 +5,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsSimpleTextItem>
 #include <QThread>
-
+#include <QGraphicsRectItem>
 
 #include "player.h"
 #include "enemymanager.h"
@@ -18,23 +18,31 @@ class Game : public QGraphicsView
 public:
     Game( QWidget * parant);
 
-
-    QGraphicsScene * scene;
-
-    Player * player;
-    EnemyManager * enemyManager;
-
+    //tests
     QGraphicsSimpleTextItem * Koords;
     QGraphicsSimpleTextItem * MouseKoords;
 
     QGraphicsLineItem achsen[3];
 
-    QGraphicsPolygonItem * mapBorder;
+
+
+    //important/save
+    QGraphicsScene * scene;
+
+    Player * player;
+    EnemyManager * enemyManager;
+
+    QGraphicsRectItem * mapBorder;
+    QGraphicsRectItem * miniMap;
+
+
 
 
 
 
     void mouseMoveEvent(QMouseEvent *event) override;
+
+    void mousePressEvent(QMouseEvent *event) override;
 
 public slots:
 
