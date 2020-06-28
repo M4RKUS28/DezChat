@@ -16,6 +16,7 @@
 
 //setting:
 #define initSpeed 2.5
+#define boostSpeed 8
 
 #define initRadius 25
 #define maxRadius 100
@@ -61,11 +62,12 @@ public:
 
     //score
     void addPoint();
+    void removePoint();
     void setScale( double scale );
 
     //input ( from game-Object )
     void rotateHead(QPointF mousePos, QGraphicsLineItem *debugLine);
-
+    void boost( bool boost );
 
 
     int getLength() const;
@@ -85,6 +87,7 @@ private:
     double speed, moveLastTimerSeqence, radius, scale;
     int moveLastTimer, length;
     size_t points;
+    bool doBoost;
 
     void increaseWorm();
     void setSpeed(double value);

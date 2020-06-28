@@ -88,7 +88,12 @@ void Game::mouseMoveEvent(QMouseEvent *event)
 
 void Game::mousePressEvent(QMouseEvent *event)
 {
-    player->addPoint( );
+    player->boost( true );
+}
+
+void Game::mouseReleaseEvent(QMouseEvent *event)
+{
+    player->boost( false );
 }
 
 

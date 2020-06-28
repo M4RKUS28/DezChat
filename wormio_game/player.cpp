@@ -23,6 +23,7 @@ void Player::resetData()
     scale = initScale;
     moveLastTimer = 0;
     length = initLength;
+    doBoost = false;
 
     //init worm
     for(int i = 0; i < length; i++) {
@@ -58,7 +59,6 @@ void Player::stop()
 }
 
 
-
 void Player::rotateHead(QPointF mousePos, QGraphicsLineItem * debugLine)
 {
 
@@ -73,6 +73,15 @@ void Player::rotateHead(QPointF mousePos, QGraphicsLineItem * debugLine)
     this->Worm.at(0)->setRotation(-1* ln.angle() + 90  );
 
     //this->Worm.at(0)->setTransformOriginPoint( 0 , 0 ); // head->rect().x() + radius, head->rect().y() + radius
+}
+
+void Player::boost(bool boost)
+{
+    doBoost = boost;
+    if(boost)
+        setSpeed( boostSpeed );
+    else
+        setSpeed( initSpeed );
 }
 
 void Player::move()
@@ -134,6 +143,11 @@ void Player::addPoint()
     setSpeed( speed + increaseWormThiknessSequenceByPoints_add );
     if( (points & increaseWormThiknessSequenceByPoints_every ) == 0 )
         setRadius( radius + increaseWormThiknessSequenceByPoints_add );
+}
+
+void Player::removePoint()
+{
+    //...
 }
 
 void Player::setScale(double scale)
