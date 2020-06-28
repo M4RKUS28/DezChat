@@ -36,7 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //------------------>Game View
 
-    game = new Game(this);
+    game = new Game(QSize(1200, 800), this);
 
     game->hide();
 
@@ -60,7 +60,6 @@ void MainWindow::timerEvent(QTimerEvent * e)
 {
     manager->sendtoAllPeers("PING=" + QString::number(manager->getConnectionList().size()) );
     timerForWarningMSG++;
-    game->player->Worm.at(0)->timerEvent(e);
 }
 
 
@@ -283,7 +282,6 @@ void MainWindow::on_Connections_itemDoubleClicked(QListWidgetItem *item)
 void MainWindow::joinGame()
 {
     this->setFixedSize(1200, 800);
-    game->setGeometry( 10, 10, this->width() - 20, this->height() - 20);
 
     //set chat things invisible
     this->ui->chat->hide();
@@ -295,6 +293,7 @@ void MainWindow::joinGame()
     //set game visible
     this->game->show();
     this->game->setFocus();
+    game->joinGame();
 
 
 }

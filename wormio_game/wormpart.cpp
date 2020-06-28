@@ -1,39 +1,31 @@
 #include "wormpart.h"
 
-#include <iostream>
 
 
-WormPart::WormPart(int radius, QGraphicsItem *parant)
-    : QGraphicsEllipseItem(parant), radius(radius)
+
+WormPart::WormPart(double radius, QBrush brush, double scale, QGraphicsItem *parant)
+    : QGraphicsEllipseItem /*QGraphicsRectItem */ (parant)
 {
-    //setPixmap(QPixmap(":/wormio_game/Ressources/test.png"));
-    //setScale(1);
-    setRotation(90);
-    //this->setBrush(Qt::blue);
+    //Rect
+    this->setRect( -1 * radius, -1 * radius, 2* radius , 2 * radius); // size
+    this->setPos(600, 200);
 
-    //this->setPos(500, 300);
-
-    this->setRect(0, 0, 120, 120); // size
-    this->setPos(1500, 100);
-
-    this->setBrush(Qt::green);
-    std::cout << "new wormpart" << std::endl;
-
-
+    //Form
+    this->setScale(scale);
+    this->setBrush(brush);
     this->setPen(QPen(QColor::fromRgb(0, 0, 0, 20))); // Rand transparenter
+
 }
 
-#include <qmath.h>
 
-void WormPart::timerEvent(QTimerEvent *ev)
+
+void WormPart::updateRadius(double rNew)
 {
-
-
+    this->setRect( -1 * rNew, -1 * rNew, 2* rNew , 2 * rNew);
 }
 
-QPointF WormPart::getCenter()
+void WormPart::updateScale(double scale)
 {
-    return QPointF(this->pos().x() + radius, this->pos().y() + radius);
-
-    return QPointF(this->rect().x() + radius, this->rect().y() + radius);
+    this->setScale( scale );
 }
+

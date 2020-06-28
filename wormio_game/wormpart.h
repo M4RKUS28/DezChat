@@ -7,17 +7,17 @@
 #include <QGraphicsItem>
 
 #include <QGraphicsScene>
+#include <iostream>
+#include <qmath.h>
 
 
-
-class WormPart : public QObject, public QGraphicsEllipseItem
+class WormPart : public QObject, public QGraphicsEllipseItem // */ QGraphicsRectItem
 {
     Q_OBJECT
 public:
-    WormPart(int radius, QGraphicsItem * parant = nullptr);
-    void timerEvent(QTimerEvent * ev);
-    QPointF getCenter();
-    int radius = 60;
+    WormPart(double radius, QBrush brush, double scale, QGraphicsItem * parant = nullptr);
+    void updateRadius( double rNew );
+    void updateScale( double scale );
 
 };
 

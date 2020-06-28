@@ -6,6 +6,7 @@
 #include <QGraphicsSimpleTextItem>
 #include <QThread>
 #include <QGraphicsRectItem>
+#include <QGraphicsWidget>
 
 #include "player.h"
 #include "enemymanager.h"
@@ -16,7 +17,7 @@ class Game : public QGraphicsView
 {
     Q_OBJECT
 public:
-    Game( QWidget * parant);
+    Game( QSize MainWindowSize, QWidget * parant);
 
     //tests
     QGraphicsSimpleTextItem * Koords;
@@ -26,7 +27,22 @@ public:
 
 
 
-    //important/save
+
+
+
+
+
+
+
+public slots:
+
+    void sceneRectChanged(const QRectF &rect);
+
+public:
+
+    //New
+    //Objects
+
     QGraphicsScene * scene;
 
     Player * player;
@@ -35,18 +51,24 @@ public:
     QGraphicsRectItem * mapBorder;
     QGraphicsRectItem * miniMap;
 
+    //Funktions:
 
 
+    void joinGame();
+       /* void leaveGame();
+
+    void showGameLobby();
+    void hideGameLobby();
 
 
+    */
+
+    //Override Funktions:
 
     void mouseMoveEvent(QMouseEvent *event) override;
-
     void mousePressEvent(QMouseEvent *event) override;
 
-public slots:
 
-    void sceneRectChanged(const QRectF &rect);
 
 };
 

@@ -1,67 +1,71 @@
 #include "game.h"
 
-Game::Game(QWidget *parant)
+Game::Game(QSize MainWindowSize, QWidget *parant)
     : QGraphicsView(parant)
 {
-    //create scene
+    //Init Objects:
+    //this:
+    this->setMouseTracking(true);
+    this->setGeometry( 10, 10, MainWindowSize.width() - 20, MainWindowSize.height() - 20 );
+    //this->setFixedSize( MainWindowSize.width() - 20, MainWindowSize.height() - 20 );
+    this->setBackgroundBrush(QImage(":/wormio_game/Ressources/slitherio_background_543a4c3cc8.jpg"));
+
+    //scene
     scene = new QGraphicsScene(this);
-    //set scene
     this->setScene(scene);
+    scene->setSceneRect(0, 0, 500,  500);
 
-    //Create Player
+    //mapBoarder
+    mapBorder = new QGraphicsRectItem();
+    mapBorder->setRect(-500, -500, 4000, 4000);
+    mapBorder->setPos(0, 0);
+    mapBorder->setPen(QPen(Qt::black, 1000));
+    scene->addItem(mapBorder);
+
+    //mini Map
+    miniMap = new QGraphicsRectItem();
+    scene->addItem(miniMap);
+
+    miniMap->setRect(0, 0, 200, 200);
+    std::cout << " maptoScene( " << this->pos().x() << ", " << this->pos().y() << " ) -> " << mapToScene(this->pos()).x() << ", " << mapToScene(this->pos()).y() << std::endl;
+    miniMap->setPos(mapToScene(this->pos()).x() + this->width() - 10 - miniMap->rect().width() +280, this->mapToScene( this->pos() ).y() + 10);
+
+    miniMap->setPen(QPen(Qt::white, 3));
+
     player = new Player(scene);
-
-    //create enemyManager with Acces on Scene
     enemyManager = new EnemyManager(scene);
 
-    //create minimap
-    miniMap = new QGraphicsRectItem();
+    //Mouse Koord debug
+    MouseKoords = new QGraphicsSimpleTextItem();
+    MouseKoords->setBrush(Qt::white);
+    scene->addItem(MouseKoords);
 
+    //Connect Signals and Slots
+    connect(this->scene, SIGNAL(sceneRectChanged(QRectF)), this, SLOT(sceneRectChanged(QRectF)));
+
+
+
+    //create minimap
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     Koords = new QGraphicsSimpleTextItem();
-    connect(this->scene, SIGNAL(sceneRectChanged(QRectF)), this, SLOT(sceneRectChanged(QRectF)));
     Koords->setBrush(Qt::blue);
+
+
 
     achsen[0].setLine(-1000, 0, 1000, 0);
     achsen[1].setLine(0, -1000, 0, 1000);
     scene->addItem(&achsen[0]);
     scene->addItem(&achsen[1]);
-    ///achsen[0].setPen(QPen(Qt::white));
-    ///achsen[1].setPen(QPen(Qt::white));
+    achsen[1].setPen(QPen(Qt::white, 3));
     achsen[0].setPen(QPen(Qt::white, 3));
 
     scene->addItem(&achsen[2]);
     //achsen[2].setPen(QPen(Qt::white));
 
-    this->setMouseTracking(true);
-    MouseKoords = new QGraphicsSimpleTextItem();
-    scene->addItem(MouseKoords);
-    ///MouseKoords->setBrush(Qt::white);
-
-
-
-    //this->scene->setMinimumRenderSize(100);
-    scene->setSceneRect(0, 0, 500,  500);
-
-
-    mapBorder = new QGraphicsRectItem();
-    mapBorder->setRect(-500, -500, 4000, 4000);
-    mapBorder->setPen(QPen(Qt::black, 1000));
-    scene->addItem(mapBorder);
-
-
-    //this->setBackgroundBrush(QBrush(QColor(Qt::gray)));
-   setBackgroundBrush(QImage(":/wormio_game/Ressources/slitherio_background_543a4c3cc8.jpg"));
     scene->addItem(Koords);
 
-
-
-    //mini map:
-    scene->addItem(miniMap);
-    miniMap->setPen(QPen(Qt::white, 3));
-    miniMap->setRect(0, 0, 200, 200);
 
 
 }
@@ -84,7 +88,7 @@ void Game::mouseMoveEvent(QMouseEvent *event)
 
 void Game::mousePressEvent(QMouseEvent *event)
 {
-    player->speed ++;
+    player->addPoint( );
 }
 
 
@@ -102,5 +106,11 @@ void Game::sceneRectChanged(const QRectF &rect)
 
     //re-setpos map:
         miniMap->setPos(mapToScene(this->pos()).x() + this->width() - 10 - 230, mapToScene(this->pos()).y() + 10);
+
+}
+
+void Game::joinGame()
+{
+    player->start();
 
 }
