@@ -33,10 +33,11 @@
 
 ///ingame setting:
 //after x points gets the worm oine bigger:
-#define increaseWormThiknessSequenceByPoints 10
+#define increaseWormThiknessSequenceByPoints_add 1
+#define increaseWormThiknessSequenceByPoints_every 10
 
 //after x points gets the worm one longer
-#define increaseWormLongnessSequenceByPoints 10
+#define increaseWormLongnessSequenceByPoints_veryOnePoint_add 1
 
 
 
@@ -66,7 +67,7 @@ public:
     void rotateHead(QPointF mousePos, QGraphicsLineItem *debugLine);
 
 
-    int getSpeed() const;
+
     int getLength() const;
     size_t getPoints() const;
 

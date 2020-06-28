@@ -16,21 +16,16 @@ Player::Player(QGraphicsScene *scene)
 
 void Player::resetData()
 {
-    //stop timer:
-    moveTimer->stop();
 
     //reset settings:
+    setSpeed(initSpeed); // speed & moveLastTimerSeqence
     radius = initRadius;
     scale = initScale;
-
-    //rm old Worm if exits:
-    for( auto &e : Worm)
-        delete e;
-    Worm.clear();
-
+    moveLastTimer = 0;
+    length = initLength;
 
     //init worm
-    for(int i = 0; i < initLength; i++) {
+    for(int i = 0; i < length; i++) {
         WormPart * wp = new WormPart(radius, QBrush(Qt::green), scale);
         Worm.prepend( wp );
         scene->addItem( wp );
@@ -43,19 +38,26 @@ void Player::start()
 {
     resetData();
     moveTimer->start();
+
+    //...
+
+
 }
 
 void Player::stop()
 {
+    moveTimer->stop();
 
-
+    //rm old Worm:
+    for( auto &e : Worm)
+        delete e;
+    Worm.clear();
 
 
 
 }
 
-#include <iostream>
-#include <QApplication>
+
 
 void Player::rotateHead(QPointF mousePos, QGraphicsLineItem * debugLine)
 {
@@ -65,7 +67,7 @@ void Player::rotateHead(QPointF mousePos, QGraphicsLineItem * debugLine)
         debugLine->setLine(ln);
 
 
-
+    //Rotate only slownly to the mouse, not imideatly
 
 
     this->Worm.at(0)->setRotation(-1* ln.angle() + 90  );
@@ -75,10 +77,7 @@ void Player::rotateHead(QPointF mousePos, QGraphicsLineItem * debugLine)
 
 void Player::move()
 {
-    //std::cout << moveLastTimer << std::endl;
-    moveLastTimer++;
-    if(moveLastTimer >= moveLastTimerSeqence) {
-        moveLastTimer = 0;
+    if((moveLastTimer++) && moveLastTimer >= moveLastTimerSeqence && !(moveLastTimer = 0)) {
 
         //move last behind vect(0) && set pos from vec(0) && move vect 0
         Worm.move(Worm.size() - 1, 1);
@@ -87,19 +86,15 @@ void Player::move()
 
     }
 
-    ///QLineF ln(Worm.at(1)->getCenter(), Worm.at(0)->getCenter());
-    ///Worm.at(1)->setPos( Worm.at(1)->getCenter().x() + ln.dx(), Worm.at(1)->getCenter().x() + ln.dy() );
-
-
     //move player
-
     double theta = Worm.at(0)->rotation() - 90;
-
     double dy = speed * qSin(qDegreesToRadians(theta));
     double dx = speed * qCos(qDegreesToRadians(theta));
 
-    Worm.at(0)->setPos( Worm.at(0)->pos().x() + dx, Worm.at(0)->pos().y() + dy );
+    //move player
+    Worm.at(0)->moveBy( dx, dy );
 
+    //move player to mid of qGView
     scene->setSceneRect(Worm.at(0)->sceneBoundingRect());
 }
 
@@ -112,7 +107,9 @@ void Player::setSpeed(double value)
 
 void Player::setRadius(double r)
 {
+    //set new radius
     radius = r;
+    //update existing items
     for( auto &e : Worm)
         e->updateRadius( radius );
 }
@@ -122,17 +119,21 @@ void Player::increaseWorm()
     length++;
     WormPart * wp = new WormPart(radius, QBrush(Qt::darkGreen), scale);
     Worm.append( wp);
+    wp->setPos(-2000, -2000); // so that you can't see them
     scene->addItem( wp );
 
-
 }
+
 
 void Player::addPoint()
 {
     points++;
-    setSpeed( speed + 0.1 );
-    increaseWorm();
-    setRadius( radius + 0.1 );
+    if( (points % increaseWormLongnessSequenceByPoints_veryOnePoint_add ) == 0 )
+        increaseWorm();
+
+    setSpeed( speed + increaseWormThiknessSequenceByPoints_add );
+    if( (points & increaseWormThiknessSequenceByPoints_every ) == 0 )
+        setRadius( radius + increaseWormThiknessSequenceByPoints_add );
 }
 
 void Player::setScale(double scale)
@@ -140,12 +141,6 @@ void Player::setScale(double scale)
     this->scale = scale;
 }
 
-
-
-int Player::getSpeed() const
-{
-    return speed;
-}
 
 size_t Player::getPoints() const
 {
