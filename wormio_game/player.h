@@ -63,6 +63,7 @@ public:
     //score
     void addPoint();
     void removePoint();
+
     void setScale( double scale );
 
     //input ( from game-Object )
@@ -90,8 +91,11 @@ private:
     bool doBoost;
 
     void increaseWorm();
+    void decreaseWorm();
+
     void setSpeed(double value);
     void setRadius( double r);
+    void dropPoint();
 
 };
 

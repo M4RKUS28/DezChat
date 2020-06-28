@@ -50,8 +50,10 @@ void Player::stop()
     moveTimer->stop();
 
     //rm old Worm:
-    for( auto &e : Worm)
+    for( auto e : Worm) {
+        scene->removeItem(e);
         delete e;
+    }
     Worm.clear();
 
 
@@ -86,6 +88,10 @@ void Player::boost(bool boost)
 
 void Player::move()
 {
+    if( doBoost )
+        dropPoint();
+
+
     if((moveLastTimer++) && moveLastTimer >= moveLastTimerSeqence && !(moveLastTimer = 0)) {
 
         //move last behind vect(0) && set pos from vec(0) && move vect 0
@@ -123,6 +129,13 @@ void Player::setRadius(double r)
         e->updateRadius( radius );
 }
 
+void Player::dropPoint()
+{
+    removePoint();
+
+    //add item
+}
+
 void Player::increaseWorm()
 {
     length++;
@@ -133,21 +146,50 @@ void Player::increaseWorm()
 
 }
 
+void Player::decreaseWorm()
+{
+    length--;
+
+    auto wp = Worm.back();
+    Worm.pop_back();
+
+    scene->removeItem(wp);
+    delete wp;
+}
+
 
 void Player::addPoint()
 {
     points++;
-    if( (points % increaseWormLongnessSequenceByPoints_veryOnePoint_add ) == 0 )
+
+    if( length > initLength && (points % increaseWormLongnessSequenceByPoints_veryOnePoint_add ) == 0 )
         increaseWorm();
 
-    setSpeed( speed + increaseWormThiknessSequenceByPoints_add );
-    if( (points & increaseWormThiknessSequenceByPoints_every ) == 0 )
+    if( radius > initRadius && (points % increaseWormThiknessSequenceByPoints_every ) == 0 )
         setRadius( radius + increaseWormThiknessSequenceByPoints_add );
 }
 
 void Player::removePoint()
 {
     //...
+    points--;
+    if(length > initLength) {
+        if(  (points % increaseWormLongnessSequenceByPoints_veryOnePoint_add ) == 0 )
+            decreaseWorm();
+
+    } else {
+        if( doBoost )
+            doBoost = false;
+    }
+
+    if( radius > initRadius ) {
+        if( (points % increaseWormThiknessSequenceByPoints_every ) == 0 )
+            setRadius( radius - increaseWormThiknessSequenceByPoints_add );
+    } else {
+        if( doBoost )
+            doBoost = false;
+    }
+
 }
 
 void Player::setScale(double scale)
