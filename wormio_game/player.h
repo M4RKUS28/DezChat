@@ -10,9 +10,11 @@
 #include <QObject>
 #include <QTimer>
 #include <QVector>
-
+#include <QApplication>
 #include "wormio_game/wormpart.h"
 #include <QtMath>
+
+
 
 //setting:
 #define initSpeed 2.5
@@ -34,11 +36,11 @@
 
 ///ingame setting:
 //after x points gets the worm oine bigger:
-#define increaseWormThiknessSequenceByPoints_add 1
+#define increaseWormThiknessSequenceByPoints_add 0.1
 #define increaseWormThiknessSequenceByPoints_every 10
 
 //after x points gets the worm one longer
-#define increaseWormLongnessSequenceByPoints_veryOnePoint_add 1
+#define increaseWormLongnessSequenceByPoints_veryOnePoint_add 10
 
 
 
@@ -52,6 +54,10 @@ public:
 
     QGraphicsScene * scene;
     QVector <WormPart *> Worm;
+    QGraphicsSimpleTextItem * scoreText;
+    QGraphicsSimpleTextItem * lengthText;
+    QGraphicsSimpleTextItem * thinknessText;
+
 
     QTimer * moveTimer;
 
@@ -74,6 +80,8 @@ public:
     int getLength() const;
     size_t getPoints() const;
 
+
+    void sceneRectChanged( QPointF min, QPointF max  );
 
 
 public slots:

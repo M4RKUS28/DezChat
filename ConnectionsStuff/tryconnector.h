@@ -12,6 +12,7 @@ enum STATE {
     OK = 0,
     UNDEFINED = 1,
     UNDEFINED_ERROR = 2,
+    NAME_SOLVING_FAILED = 3
 };
 
 /*

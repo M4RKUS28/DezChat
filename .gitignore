@@ -76,3 +76,6 @@ g++/
 
 Makefile
 S_New4
+
+release/*
+debug/*

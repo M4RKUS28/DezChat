@@ -4,6 +4,20 @@ Player::Player(QGraphicsScene *scene)
     : scene(scene), moveLastTimer(0)
 {
     // init objects
+
+    scoreText = new QGraphicsSimpleTextItem();
+    scoreText->setBrush(QColor(Qt::white));
+    scene->addItem(scoreText);
+
+    lengthText = new QGraphicsSimpleTextItem();
+    lengthText->setBrush(QColor(Qt::white));
+    scene->addItem(lengthText);
+
+    thinknessText = new QGraphicsSimpleTextItem();
+    thinknessText->setBrush(QColor(Qt::white));
+    scene->addItem(thinknessText);
+
+
     moveTimer = new QTimer(this);
     moveTimer->setInterval(20);
     connect(moveTimer, SIGNAL(timeout()), this, SLOT(move()));
@@ -17,6 +31,16 @@ Player::Player(QGraphicsScene *scene)
 void Player::resetData()
 {
 
+    moveTimer->stop();
+
+    //rm old Worm:
+    for( auto e : Worm) {
+        scene->removeItem(e);
+        delete e;
+    }
+    Worm.clear();
+
+
     //reset settings:
     setSpeed(initSpeed); // speed & moveLastTimerSeqence
     radius = initRadius;
@@ -24,6 +48,8 @@ void Player::resetData()
     moveLastTimer = 0;
     length = initLength;
     doBoost = false;
+
+    points = 0;
 
     //init worm
     for(int i = 0; i < length; i++) {
@@ -41,12 +67,14 @@ void Player::start()
     moveTimer->start();
 
     //...
-
+    for( int i = 0; i < 100; i++)
+        addPoint();
 
 }
 
 void Player::stop()
 {
+
     moveTimer->stop();
 
     //rm old Worm:
@@ -55,7 +83,6 @@ void Player::stop()
         delete e;
     }
     Worm.clear();
-
 
 
 }
@@ -91,6 +118,10 @@ void Player::move()
     if( doBoost )
         dropPoint();
 
+    if(Worm.length() <= 2) {
+        std::cout << " Error: Worm legth <= 0" << std::endl;
+        QApplication::exit(-1);
+    }
 
     if((moveLastTimer++) && moveLastTimer >= moveLastTimerSeqence && !(moveLastTimer = 0)) {
 
@@ -111,6 +142,8 @@ void Player::move()
 
     //move player to mid of qGView
     scene->setSceneRect(Worm.at(0)->sceneBoundingRect());
+
+
 }
 
 void Player::setSpeed(double value)
@@ -139,6 +172,7 @@ void Player::dropPoint()
 void Player::increaseWorm()
 {
     length++;
+
     WormPart * wp = new WormPart(radius, QBrush(Qt::darkGreen), scale);
     Worm.append( wp);
     wp->setPos(-2000, -2000); // so that you can't see them
@@ -162,35 +196,47 @@ void Player::addPoint()
 {
     points++;
 
-    if( length > initLength && (points % increaseWormLongnessSequenceByPoints_veryOnePoint_add ) == 0 )
+    if( (points % increaseWormLongnessSequenceByPoints_veryOnePoint_add ) == 0 )
         increaseWorm();
 
-    if( radius > initRadius && (points % increaseWormThiknessSequenceByPoints_every ) == 0 )
+    if( (points % increaseWormThiknessSequenceByPoints_every ) == 0 )
         setRadius( radius + increaseWormThiknessSequenceByPoints_add );
 }
 
 void Player::removePoint()
 {
     //...
-    points--;
+    if(points > 0)
+        points--;
+
+
     if(length > initLength) {
+
         if(  (points % increaseWormLongnessSequenceByPoints_veryOnePoint_add ) == 0 )
             decreaseWorm();
 
     } else {
-        if( doBoost )
+
+        if( doBoost ) {
             doBoost = false;
+            setSpeed( initSpeed );
+        }
     }
 
-    if( radius > initRadius ) {
+    if( /*radius > initRadius*/ true ) {
         if( (points % increaseWormThiknessSequenceByPoints_every ) == 0 )
             setRadius( radius - increaseWormThiknessSequenceByPoints_add );
     } else {
-        if( doBoost )
+
+        if( doBoost ) {
             doBoost = false;
+            setSpeed( initSpeed );
+        }
+
     }
 
 }
+
 
 void Player::setScale(double scale)
 {
@@ -201,6 +247,18 @@ void Player::setScale(double scale)
 size_t Player::getPoints() const
 {
     return points;
+}
+
+void Player::sceneRectChanged(QPointF min , QPointF max)
+{
+    scoreText->setPos( min.x() + 10, max.y() - 35 );
+    scoreText->setText( "Score: " + QString::number( points ) );
+
+    lengthText->setPos( min.x() + 10, max.y() - 55 );
+    lengthText->setText( "Length: " + QString::number( length ) );
+
+    thinknessText->setPos( min.x() + 10, max.y() - 75 );
+    thinknessText->setText( "Thikness: " + QString::number( points ) + " - Scale: " + QString::number(scale) );
 }
 
 int Player::getLength() const

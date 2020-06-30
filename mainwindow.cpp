@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     std::vector<ConnetionsManager::PC> pcs;
-    bool Port_Home_Version = true;
+    bool Port_Home_Version = false;
 
     if(/* DISABLES CODE: Schul-Version */ Port_Home_Version) {
         for (unsigned short i = 0; i < 32; ++i)
@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     } else {
         pcs.push_back(ConnetionsManager::PC("SERVER_PORT", 5000));
         for (int i = 0; i < 35; ++i) {
-            pcs.push_back(ConnetionsManager::PC("CR01-PC" + std::string((i < 10) ? "0" : "") + std::to_string(i), 5000));
+            pcs.push_back(ConnetionsManager::PC("cr01-pc" + std::string((i < 10) ? "0" : "") + std::to_string(i), 5000));
             //pcs.push_back(ConnetionsManager::PC("CR02-PC" + std::string((i < 10) ? "0" : "") + std::to_string(i), 5000));
         }
 
@@ -37,14 +37,9 @@ MainWindow::MainWindow(QWidget *parent) :
     //------------------>Game View
 
     game = new Game(QSize(1200, 800), this);
-
     game->hide();
+   // this->joinGame();
 
-
-    this->joinGame();
-
-    //setMouseTracking(true);
-    //view.scene->installEventFilter(this);
 
 }
 
@@ -304,6 +299,7 @@ void MainWindow::leaveGame()
     this->game->hide();
 
 
+
     //set old things visible
     this->ui->chat->hide();
     this->ui->Connections->hide();
@@ -311,39 +307,3 @@ void MainWindow::leaveGame()
     this->ui->label->hide();
 }
 
-
-
-/*
-bool MainWindow::eventFilter(QObject *watched, QEvent *event)
-{
-    std::cout << "got evet" << std::endl;
-
-    //  this->view.scene->updateTest(e->x(), e->y());
-    if(watched == view.scene){
-            // press event
-            QGraphicsSceneMouseEvent *mouseSceneEvent;
-            if(event->type() == QEvent::GraphicsSceneMousePress){
-                mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
-                qDebug() << mouseSceneEvent->scenePos()<<mouseSceneEvent->lastScenePos();
-               // your logic here
-            }
-            // move event
-            else if (event->type() == QEvent::GraphicsSceneMouseMove) {
-                mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
-                qDebug() << mouseSceneEvent->scenePos()<<mouseSceneEvent->lastScenePos();
-                // your logic here
-
-                std::cout << "Moved to: " << mouseSceneEvent->scenePos().x() << " " << mouseSceneEvent->scenePos().y() << std::endl;
-            }
-            // release event
-            else if (event->type() == QEvent::GraphicsSceneMouseRelease) {
-                mouseSceneEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
-                qDebug() << mouseSceneEvent->scenePos()<<mouseSceneEvent->lastScenePos();
-                // your logic here
-            }
-        }
-
-    return QMainWindow::eventFilter(watched, event);
-}
-
-*/

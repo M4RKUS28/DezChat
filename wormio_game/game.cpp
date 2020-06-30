@@ -27,7 +27,6 @@ Game::Game(QSize MainWindowSize, QWidget *parant)
     scene->addItem(miniMap);
 
     miniMap->setRect(0, 0, 200, 200);
-    std::cout << " maptoScene( " << this->pos().x() << ", " << this->pos().y() << " ) -> " << mapToScene(this->pos()).x() << ", " << mapToScene(this->pos()).y() << std::endl;
     miniMap->setPos(mapToScene(this->pos()).x() + this->width() - 10 - miniMap->rect().width() +280, this->mapToScene( this->pos() ).y() + 10);
 
     miniMap->setPen(QPen(Qt::white, 3));
@@ -112,6 +111,8 @@ void Game::sceneRectChanged(const QRectF &rect)
     //re-setpos map:
         miniMap->setPos(mapToScene(this->pos()).x() + this->width() - 10 - 230, mapToScene(this->pos()).y() + 10);
 
+
+        player->sceneRectChanged( mapToScene(this->pos()), mapToScene( QPoint( this->width() + this->x(), this->height() + this->y() ) ) );
 }
 
 void Game::joinGame()

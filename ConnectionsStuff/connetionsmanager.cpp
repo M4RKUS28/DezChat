@@ -212,14 +212,14 @@ void ConnetionsManager::TryConnectorFinished(TryConnector *who)
 
         emit ConnectionsListChanged();
         //emit showMSG(QString::fromStdString(" -> New Client: " + who->getIp() + ":" + std::to_string(who->getPort())));
-//    } else if (who->getState() == STATE::TIME_OUT_TRY_OUT) {
-//        std::cout << "-> Connect to " << who->getIp() << ":" << who->getPort() << " timedout." << std::endl;
+    } else if (who->getState() == STATE::NAME_SOLVING_FAILED) {
+        std::cout << "-> Connect to " << who->getIp() << ":" << who->getPort() << " failed: Solvingup Name failed." << std::endl;
 
     } else if(who->getState() == STATE::UNDEFINED) {
         std::cout << "-> Thread for Connecting to " << who->getIp() << ":" << who->getPort() << " never started." << std::endl;
 
     } else {
-        //std::cout << "-> Connect to " << who->getIp() << ":" << who->getPort() << " failed." << std::endl;
+        std::cout << "-> Connect to " << who->getIp() << ":" << who->getPort() << " failed: " << who->client().getLastError() << std::endl;
     }
 
     delete who;//->deleteLater();

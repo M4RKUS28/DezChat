@@ -13,7 +13,6 @@ SOURCES      += \
     wormio_game/enemymanager.cpp \
     wormio_game/game.cpp \
     wormio_game/player.cpp \
-    wormio_game/wormio_scene.cpp \
     wormio_game/wormpart.cpp
 
 HEADERS      += \
@@ -26,7 +25,6 @@ HEADERS      += \
     wormio_game/game.h \
     wormio_game/player.h \
     wormio_game/wormio_graphicsview.h \
-    wormio_game/wormio_scene.h \
     wormio_game/wormpart.h
 
 INCLUDEPATH  += $$PWD/../TCP_LIB_CLIENT_V2/ \

@@ -102,7 +102,12 @@ const unsigned short &TryConnector::getPort()
 void TryConnector::run()
 {
     this->state = STATE::UNDEFINED;
-    this->state = (client_.connectTo(ip, port, 200, 3) == 0) ? STATE::OK : STATE::UNDEFINED_ERROR;
+    std::string ipSolved = client_.getIpByName( ip );
+    if(ipSolved == "")
+        this->state = NAME_SOLVING_FAILED;
+    else
+        this->state = (client_.connectTo(ipSolved, port, 200, 3) == 0) ? STATE::OK : STATE::UNDEFINED_ERROR;
+
     emit finished(this);
     return;
 
