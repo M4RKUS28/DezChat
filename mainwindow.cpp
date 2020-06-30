@@ -7,6 +7,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    QPalette pal = palette();
+    pal.setColor(QPalette::Window, QColor::fromRgb(238, 255, 255, 255));
+    this->setPalette(pal);
+
     connect(manager, SIGNAL(showMSG(QString)), this, SLOT(printInfo(QString)));
     connect(manager, SIGNAL(ConnectionsListChanged()), this, SLOT(updateClientList()));
     connect(manager, SIGNAL(sendMessageWeiterLeitung(Peer *, QString)), this, SLOT(recvedMSG(Peer *,QString)));
