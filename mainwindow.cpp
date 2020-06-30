@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
         pcs.push_back(ConnetionsManager::PC("SERVER_PORT", 5000));
         for (int i = 0; i < 35; ++i) {
             pcs.push_back(ConnetionsManager::PC("cr01-pc" + std::string((i < 10) ? "0" : "") + std::to_string(i), 5000));
+            pcs.push_back(ConnetionsManager::PC("localhost", 5000));
             //pcs.push_back(ConnetionsManager::PC("CR02-PC" + std::string((i < 10) ? "0" : "") + std::to_string(i), 5000));
         }
 
@@ -39,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
     game = new Game(QSize(1200, 800), this);
     game->hide();
    // this->joinGame();
+
+
 
 
 }
