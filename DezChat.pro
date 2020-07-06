@@ -12,6 +12,7 @@ SOURCES      += \
     wormio_game/enemy.cpp \
     wormio_game/enemymanager.cpp \
     wormio_game/game.cpp \
+    wormio_game/minimap.cpp \
     wormio_game/player.cpp \
     wormio_game/wormpart.cpp
 
@@ -23,6 +24,7 @@ HEADERS      += \
     wormio_game/enemy.h \
     wormio_game/enemymanager.h \
     wormio_game/game.h \
+    wormio_game/minimap.h \
     wormio_game/player.h \
     wormio_game/wormio_graphicsview.h \
     wormio_game/wormpart.h

@@ -15,7 +15,9 @@ class WormPart : public QObject, public QGraphicsEllipseItem // */ QGraphicsRect
 {
     Q_OBJECT
 public:
-    WormPart(double radius, QBrush brush, double scale, QGraphicsItem * parant = nullptr);
+    WormPart(double radius, QPair<QBrush, QPen> muster, double scale, QGraphicsItem * parant = nullptr);
+    ~WormPart();
+
     void updateRadius( double rNew );
     void updateScale( double scale );
 

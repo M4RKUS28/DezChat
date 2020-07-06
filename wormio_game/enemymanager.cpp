@@ -6,3 +6,8 @@ EnemyManager::EnemyManager(QGraphicsScene *scene)
 {
 
 }
+
+EnemyManager::~EnemyManager()
+{
+    std::cout << "~EnemyManager()" << std::endl;
+}

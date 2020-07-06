@@ -219,7 +219,7 @@ void ConnetionsManager::TryConnectorFinished(TryConnector *who)
         std::cout << "-> Thread for Connecting to " << who->getIp() << ":" << who->getPort() << " never started." << std::endl;
 
     } else {
-        std::cout << "-> Connect to " << who->getIp() << ":" << who->getPort() << " failed: " << who->client().getLastError() << std::endl;
+        //std::cout << "-> Connect to " << who->getIp() << ":" << who->getPort() << " failed: " << who->client().getLastError() << std::endl;
     }
 
     delete who;//->deleteLater();

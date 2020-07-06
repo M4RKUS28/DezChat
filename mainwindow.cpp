@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     std::vector<ConnetionsManager::PC> pcs;
-    bool Port_Home_Version = false;
+    bool Port_Home_Version = true;
 
     if(/* DISABLES CODE: Schul-Version */ Port_Home_Version) {
         for (unsigned short i = 0; i < 32; ++i)
@@ -28,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
             pcs.push_back(ConnetionsManager::PC("cr01-pc" + std::string((i < 10) ? "0" : "") + std::to_string(i), 5000));
             //pcs.push_back(ConnetionsManager::PC("CR02-PC" + std::string((i < 10) ? "0" : "") + std::to_string(i), 5000));
         }
+        //pcs.push_back(ConnetionsManager::PC("DESKTOP-GK2CR51", 5000));
 
     }
 
@@ -41,11 +42,9 @@ MainWindow::MainWindow(QWidget *parent) :
     //------------------>Game View
 
     game = new Game(QSize(1200, 800), this);
-    game->hide();
-   // this->joinGame();
+    connect(game, SIGNAL(wantLeaveGame()), this, SLOT(leaveGame()));
 
-
-
+    ui->chat->addMsg("<i><b><font size=\"12\"><span style=\"color:#5f0\">Spiele Worm.io indem du 'lol' eingibst!</span><</font></b></i>\n", Qt::AlignCenter);
 
 }
 
@@ -282,6 +281,10 @@ void MainWindow::on_Connections_itemDoubleClicked(QListWidgetItem *item)
 
 void MainWindow::joinGame()
 {
+    ui->chat->addMsg(QTime::currentTime().toString() + ": Wechsle in die Spiel Lobby...", Qt::AlignCenter, Qt::gray);
+    manager->sendtoAllPeers("MSG=...spielt jetzt Worm.io !");
+
+
     this->setFixedSize(1200, 800);
 
     //set chat things invisible
@@ -294,22 +297,24 @@ void MainWindow::joinGame()
     //set game visible
     this->game->show();
     this->game->setFocus();
-    game->joinGame();
+    game->showGameLobby();
 
 
 }
 
 void MainWindow::leaveGame()
 {
+    this->setFixedSize(1000, 550);
+
     //make game invisible
     this->game->hide();
 
 
 
     //set old things visible
-    this->ui->chat->hide();
-    this->ui->Connections->hide();
-    this->ui->inputLine->hide();
-    this->ui->label->hide();
+    this->ui->chat->show();
+    this->ui->Connections->show();
+    this->ui->inputLine->show();
+    this->ui->label->show();
 }
 

@@ -1,7 +1,7 @@
 #include "player.h"
 
-Player::Player(QGraphicsScene *scene)
-    : scene(scene), moveLastTimer(0)
+Player::Player(QGraphicsScene *scene, QVector< QPair<QBrush, QPen> > muster, QGraphicsView *mainView, QRectF map)
+    : scene(scene), mainView(mainView), map(map), moveLastTimer(0), muster(muster)
 {
     // init objects
 
@@ -22,16 +22,86 @@ Player::Player(QGraphicsScene *scene)
     moveTimer->setInterval(20);
     connect(moveTimer, SIGNAL(timeout()), this, SLOT(move()));
 
+    rotateTimer = new QTimer(this);
+    rotateTimer->setInterval(20);
+    connect(rotateTimer, SIGNAL(timeout()), this, SLOT(rotateHead()));
+
     //setup setting
     setSpeed(initSpeed);
     resetData();
 
+
+
+    //test:
+    debugDirectionLine = new QGraphicsLineItem;
+    scene->addItem(debugDirectionLine);
+
 }
+
+Player::~Player()
+{
+    std::cout << "~Player()" << std::endl;
+
+    moveTimer->stop();
+    rotateTimer->stop();
+
+
+    delete moveTimer;
+    moveTimer = nullptr;
+
+    delete rotateTimer;
+    rotateTimer = nullptr;
+
+    //rm old Worm:
+    for( auto e : Worm) {
+        scene->removeItem(e);
+        delete e;
+    }  Worm.clear();
+
+    delete thinknessText;
+    thinknessText = nullptr;
+
+    delete lengthText;
+    lengthText = nullptr;
+
+    delete scoreText;
+    scoreText = nullptr;
+
+
+    //debug
+    delete debugDirectionLine;
+    debugDirectionLine = nullptr;
+
+}
+
+void Player::setMusterVec(const QVector<QPair<QBrush, QPen> > &value)
+{
+    muster = value;
+}
+
+bool Player::inGame() const
+{
+    return isInGame;
+}
+
+QPair<QBrush, QPen> Player::getMuster()
+{
+    QPair < QBrush, QPen > ret;
+
+    if(muster.size() > 0 && musterPos < muster.size()) {
+        ret = muster.at( musterPos  );
+        if ( (++musterPos) >= muster.size() )
+            musterPos = 0;
+    }
+    return ret;
+}
+
 
 void Player::resetData()
 {
 
     moveTimer->stop();
+    rotateTimer->stop();
 
     //rm old Worm:
     for( auto e : Worm) {
@@ -46,14 +116,15 @@ void Player::resetData()
     radius = initRadius;
     scale = initScale;
     moveLastTimer = 0;
+    dropPointCounter = 0;
     length = initLength;
     doBoost = false;
-
     points = 0;
+    musterPos = 0;
 
     //init worm
     for(int i = 0; i < length; i++) {
-        WormPart * wp = new WormPart(radius, QBrush(Qt::green), scale);
+        WormPart * wp = new WormPart(radius, getMuster(), scale);
         Worm.prepend( wp );
         scene->addItem( wp );
     }
@@ -63,49 +134,59 @@ void Player::resetData()
 
 void Player::start()
 {
+    if(inGame())
+        return;
+
     resetData();
     moveTimer->start();
+    rotateTimer->start();
+    isInGame = true;
+
 
     //...
-    for( int i = 0; i < 100; i++)
+    for( int i = 0; i < 2000; i++)
         addPoint();
 
 }
 
 void Player::stop()
 {
+//    if(!inGame())
+//        return; // do not drop points if was not ingame bevore
 
     moveTimer->stop();
+    rotateTimer->stop();
 
-    //rm old Worm:
+    //rm old Worm: && ---> drop points
     for( auto e : Worm) {
         scene->removeItem(e);
         delete e;
     }
     Worm.clear();
 
+    isInGame = false;
 
 }
 
 
-void Player::rotateHead(QPointF mousePos, QGraphicsLineItem * debugLine)
+void Player::mousePosChanged(QPointF mousePos)
 {
-
-    QLineF ln( QPointF(this->Worm.at(0)->x(), this->Worm.at(0)->y()), mousePos );
-    if(debugLine)
-        debugLine->setLine(ln);
+    if(Worm.length() < 1)
+        return;
 
 
-    //Rotate only slownly to the mouse, not imideatly
 
+    ///this->Worm.at(0)->setRotation(-1* ln.angle() + 90  );
 
-    this->Worm.at(0)->setRotation(-1* ln.angle() + 90  );
 
     //this->Worm.at(0)->setTransformOriginPoint( 0 , 0 ); // head->rect().x() + radius, head->rect().y() + radius
 }
 
 void Player::boost(bool boost)
 {
+    if( getLength() <= initLength )
+        return;
+
     doBoost = boost;
     if(boost)
         setSpeed( boostSpeed );
@@ -115,8 +196,10 @@ void Player::boost(bool boost)
 
 void Player::move()
 {
-    if( doBoost )
-        dropPoint();
+    if( (++dropPointCounter) >= droppointEveryXRounds  && ! (dropPointCounter = 0) ) {
+        if( doBoost )
+            dropPoint();
+    }
 
     if(Worm.length() <= 2) {
         std::cout << " Error: Worm legth <= 0" << std::endl;
@@ -143,6 +226,40 @@ void Player::move()
     //move player to mid of qGView
     scene->setSceneRect(Worm.at(0)->sceneBoundingRect());
 
+    emit movedTo(Worm.at(0)->pos(), Worm.at(0)->rotation());
+
+
+    //Check for losing.....
+    if( !map.contains(Worm.at(0)->pos())) {
+        emit lose();
+    }
+
+   // auto e = scene->items( Worm.at(0)->pos() );
+
+
+
+}
+
+void Player::rotateHead()
+{
+    if(this->Worm.size() < 1)
+        return;
+
+    QLineF ln( this->Worm.at(0)->pos(), mainView->mapToScene(  mainView->mapFromGlobal( QCursor::pos() ) ) );
+
+    double rot = Worm.at(0)->rotation() - defaultRotation;
+    double x = rot - 360 + ln.angle() ;
+
+    x = rot - //derzeitige rotation MINUS
+            ( ( x > turnSpeed ) ? turnSpeed : ( ( x < (-turnSpeed) ) ? (-turnSpeed) : x ) ) * // +- Geschwindigkeit, oder weniger, wenn kleiner als Geschwindigkeit MAL
+            ( ( /*qAbs*/abs(x) > 180 ) ? -1 : 1 ); // +-1, um kürzeren Wegn zu nehmen
+
+    if(x > 360)
+        x -= 360;
+    else if(x < 0)
+        x += 360;
+
+    Worm.at(0)->setRotation( x + defaultRotation  );
 
 }
 
@@ -151,6 +268,8 @@ void Player::setSpeed(double value)
     speed = value;
     if(speed)
         moveLastTimerSeqence = wormPartDistance / speed;
+    if(moveLastTimerSeqence < 1)
+        std::cout << "WARNING: moveLastTimerSeqence < 1 !: " << moveLastTimerSeqence << std::endl;
 }
 
 void Player::setRadius(double r)
@@ -169,11 +288,13 @@ void Player::dropPoint()
     //add item
 }
 
+
+
 void Player::increaseWorm()
 {
     length++;
 
-    WormPart * wp = new WormPart(radius, QBrush(Qt::darkGreen), scale);
+    WormPart * wp = new WormPart(radius, getMuster(), scale);
     Worm.append( wp);
     wp->setPos(-2000, -2000); // so that you can't see them
     scene->addItem( wp );
@@ -251,6 +372,9 @@ size_t Player::getPoints() const
 
 void Player::sceneRectChanged(QPointF min , QPointF max)
 {
+//    std::cout << " MIN( " << min.x() << " | " << min.y() << " ) ; MAX( " << max.x() << " | " << max.y() << " )" << std::endl;
+
+
     scoreText->setPos( min.x() + 10, max.y() - 35 );
     scoreText->setText( "Score: " + QString::number( points ) );
 
@@ -260,6 +384,7 @@ void Player::sceneRectChanged(QPointF min , QPointF max)
     thinknessText->setPos( min.x() + 10, max.y() - 75 );
     thinknessText->setText( "Thikness: " + QString::number( points ) + " - Scale: " + QString::number(scale) );
 }
+
 
 int Player::getLength() const
 {

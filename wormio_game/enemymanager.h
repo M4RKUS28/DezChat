@@ -2,12 +2,16 @@
 #define ENEMYMANAGER_H
 
 #include <QGraphicsScene>
+#include <QObject>
+#include <iostream>
 
-class EnemyManager
+class EnemyManager : public QObject
 {
+    Q_OBJECT
 public:
 
     EnemyManager( QGraphicsScene * scene);
+    ~EnemyManager();
     QGraphicsScene *scene;
 
 

@@ -46,8 +46,11 @@ private:
 
 public:
     void joinGame();
+
+public slots:
     void leaveGame();
 
+private:
 
     Game * game;
 

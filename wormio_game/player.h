@@ -4,6 +4,8 @@
 #include <QPixmap>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsItem>
+#include <QGraphicsView>
+#include <QGraphicsScene>
 
 #include <QGraphicsScene>
 #include <QMouseEvent>
@@ -17,8 +19,10 @@
 
 
 //setting:
-#define initSpeed 2.5
-#define boostSpeed 8
+
+
+constexpr static double initSpeed  = 3;
+constexpr static double boostSpeed = 8;
 
 #define initRadius 25
 #define maxRadius 100
@@ -32,15 +36,23 @@
 //#define maxPartDistance
 
 #define initScale 1
-
+#define scaleFaktorAtPoints ka
 
 ///ingame setting:
 //after x points gets the worm oine bigger:
-#define increaseWormThiknessSequenceByPoints_add 0.1
+#define increaseWormThiknessSequenceByPoints_add 0.05
 #define increaseWormThiknessSequenceByPoints_every 10
 
 //after x points gets the worm one longer
-#define increaseWormLongnessSequenceByPoints_veryOnePoint_add 10
+#define increaseWormLongnessSequenceByPoints_veryOnePoint_add 5
+
+//only every x rounds poit will droped at boost
+#define droppointEveryXRounds 6
+
+
+
+#define defaultRotation 90
+#define turnSpeed 5
 
 
 
@@ -50,21 +62,56 @@ class Player : public QObject
     Q_OBJECT
 public:
 
-    Player(QGraphicsScene * scene);
+    Player(QGraphicsScene * scene, QVector< QPair<QBrush, QPen> > muster, QGraphicsView * mainView, QRectF map);
+    ~Player();
+
+    //input ( from game-Object )
+    void mousePosChanged(QPointF mousePos);
+    void boost( bool boost );
+
+    void start();
+    void stop();
+
+    int getLength() const;
+    size_t getPoints() const;
+
+    void setMusterVec(const QVector < QPair < QBrush, QPen > > &value);
+
+    bool inGame() const;
+
+public slots:
+    //resize Text Items
+    void sceneRectChanged( QPointF min, QPointF max  );
+
+signals:
+    void lose();
+    //void scoreChanged();
+    void movedTo( QPointF newPos, double rotation);
+
+
+
+private:
 
     QGraphicsScene * scene;
+    QGraphicsView * mainView;
+    QRectF map;
+
+    QGraphicsLineItem * debugDirectionLine;
+
+
     QVector <WormPart *> Worm;
+
     QGraphicsSimpleTextItem * scoreText;
     QGraphicsSimpleTextItem * lengthText;
     QGraphicsSimpleTextItem * thinknessText;
 
 
     QTimer * moveTimer;
+    QTimer * rotateTimer;
+
 
     //-
     void resetData();
-    void start();
-    void stop();
 
     //score
     void addPoint();
@@ -72,31 +119,18 @@ public:
 
     void setScale( double scale );
 
-    //input ( from game-Object )
-    void rotateHead(QPointF mousePos, QGraphicsLineItem *debugLine);
-    void boost( bool boost );
 
 
-    int getLength() const;
-    size_t getPoints() const;
 
 
-    void sceneRectChanged( QPointF min, QPointF max  );
+
+    QPair < QBrush, QPen > getMuster();
 
 
-public slots:
-    void move();
-
-signals:
-    void lose();
-    void scoreChanged();
-
-
-private:
     double speed, moveLastTimerSeqence, radius, scale;
-    int moveLastTimer, length;
+    int moveLastTimer, length, dropPointCounter;
     size_t points;
-    bool doBoost;
+    bool doBoost, isInGame;
 
     void increaseWorm();
     void decreaseWorm();
@@ -104,6 +138,14 @@ private:
     void setSpeed(double value);
     void setRadius( double r);
     void dropPoint();
+
+    QVector < QPair < QBrush, QPen > > muster;
+    int musterPos;
+
+
+private slots:
+    void move();
+    void rotateHead();
 
 };
 

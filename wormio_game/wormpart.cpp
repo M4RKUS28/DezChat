@@ -3,7 +3,7 @@
 
 
 
-WormPart::WormPart(double radius, QBrush brush, double scale, QGraphicsItem *parant)
+WormPart::WormPart(double radius, QPair<QBrush, QPen> muster, double scale, QGraphicsItem *parant)
     : QGraphicsEllipseItem /*QGraphicsRectItem */ (parant)
 {
     //Rect
@@ -12,8 +12,13 @@ WormPart::WormPart(double radius, QBrush brush, double scale, QGraphicsItem *par
 
     //Form
     this->setScale(scale);
-    this->setBrush(brush);
-    this->setPen(QPen(QColor::fromRgb(0, 0, 0, 20))); // Rand transparenter
+    this->setBrush(muster.first);
+    this->setPen(muster.second); // Rand transparenter
+
+}
+
+WormPart::~WormPart()
+{
 
 }
 
