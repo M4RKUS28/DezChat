@@ -297,7 +297,7 @@ void MainWindow::joinGame()
     //set game visible
     this->game->show();
     this->game->setFocus();
-    game->showGameLobby();
+    game->showGameLobby( true );
 
 
 }

@@ -9,9 +9,14 @@
 #include <QGraphicsWidget>
 #include <QScrollBar>
 
+#include <QPushButton>
+#include <QPalette>
+
+
 #include "player.h"
 #include "enemymanager.h"
 #include "minimap.h"
+
 
 class Game : public QGraphicsView
 {
@@ -20,19 +25,22 @@ public:
     Game( QSize MainWindowSize, QWidget * parant);
     ~Game();
 
+    void showGameLobby( bool fromLobby = false);
 
-
-    //tests
-    QGraphicsSimpleTextItem * Koords;
-    QGraphicsSimpleTextItem * MouseKoords;
-
-
-public slots:
+private:
+    void hideGameLobby();
+    void startGame();
     void stopGame();
-    void showGameLobby();
+
 
 private slots:
+    void playerLose();
+
     void sceneRectChanged(const QRectF &rect);
+    void onStartButtonClicked();
+    void onBackToChatButtonClicked();
+    void onShowOverLaysButtonClicked();
+
 
 
 private:
@@ -48,20 +56,30 @@ private:
     MiniMap * miniMap;
 
     //Lobby
-    QGraphicsSimpleTextItem * lobyMessage;
-    QGraphicsSimpleTextItem * statsInLobby;
     unsigned long highscore;
+    bool showOverLays;
 
-    //Funktions:
+    QGraphicsRectItem * lobbyBackGround;
+    QPoint picturePos;
+
+    QGraphicsTextItem * lobbyTitle;
+
+    QPushButton * startSpielButton;
+    QPushButton * leaveGameLobbyButton;
+    QPushButton * showOverLaysButton;
+
+    QGraphicsRectItem * messageBox;
+    QGraphicsRectItem * statsOverLay;
+    QGraphicsRectItem * playerListOverLay;
 
 
-    void startGame();
-    void hideGameLobby();
+    QGraphicsTextItem * listOfPlayingPlayer;
+    QGraphicsTextItem * listOfYourStats;
+    QGraphicsTextItem * tipps;
 
 
 
     //Override Funktions:
-
     void mouseMoveEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;

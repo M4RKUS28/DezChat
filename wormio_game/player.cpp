@@ -45,32 +45,13 @@ Player::~Player()
     moveTimer->stop();
     rotateTimer->stop();
 
-
     delete moveTimer;
     moveTimer = nullptr;
 
     delete rotateTimer;
     rotateTimer = nullptr;
 
-    //rm old Worm:
-    for( auto e : Worm) {
-        scene->removeItem(e);
-        delete e;
-    }  Worm.clear();
-
-    delete thinknessText;
-    thinknessText = nullptr;
-
-    delete lengthText;
-    lengthText = nullptr;
-
-    delete scoreText;
-    scoreText = nullptr;
-
-
-    //debug
-    delete debugDirectionLine;
-    debugDirectionLine = nullptr;
+    //scene deletes items
 
 }
 
@@ -169,18 +150,7 @@ void Player::stop()
 }
 
 
-void Player::mousePosChanged(QPointF mousePos)
-{
-    if(Worm.length() < 1)
-        return;
 
-
-
-    ///this->Worm.at(0)->setRotation(-1* ln.angle() + 90  );
-
-
-    //this->Worm.at(0)->setTransformOriginPoint( 0 , 0 ); // head->rect().x() + radius, head->rect().y() + radius
-}
 
 void Player::boost(bool boost)
 {

@@ -1,29 +1,27 @@
 #include "game.h"
 
+
 Game::Game(QSize MainWindowSize, QWidget *parant)
-    : QGraphicsView(parant), highscore(0)
+    : QGraphicsView(parant), highscore(0), showOverLays( true )
 {
-    //Init Objects:
-    //this:
     this->hide();
-    this->setMouseTracking(true);
+
+    //Init Objects:
     this->setGeometry( 10, 10, MainWindowSize.width() - 20, MainWindowSize.height() - 20 );
-    //this->setFixedSize( MainWindowSize.width() - 20, MainWindowSize.height() - 20 );
     this->setBackgroundBrush(QImage("://wormio_game/Ressources/'background.png'"));
 
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 
-
     //scene
-    scene = new QGraphicsScene(this);
+    scene = new QGraphicsScene(this );
+    scene->setSceneRect( 0, 0, this->width(), this->height() );
     this->setScene(scene);
-    scene->setSceneRect(150, 150, 500,  500);
+
 
     //mapBoarder
-    mapBorder = new QGraphicsRectItem();
-    mapBorder->setRect(-500, -500, 4000, 4000);
+    mapBorder = new QGraphicsRectItem( -500, -500, 4000, 4000 );
     mapBorder->setPos(0, 0);
     mapBorder->setPen(QPen(/*QBrush(QImage("://wormio_game/Ressources/border.png"))*/Qt::red, 1000));
     scene->addItem(mapBorder);
@@ -41,55 +39,96 @@ Game::Game(QSize MainWindowSize, QWidget *parant)
     player = new Player(scene, muster, this, QRectF(0, 0, 3000, 3000));
     enemyManager = new EnemyManager(scene);
 
-    //Mouse Koord debug
-    MouseKoords = new QGraphicsSimpleTextItem();
-    MouseKoords->setBrush(Qt::white);
-    scene->addItem(MouseKoords);
-
-    lobyMessage = new QGraphicsSimpleTextItem();
-    statsInLobby = new QGraphicsSimpleTextItem();
-    scene->addItem(lobyMessage);
-    scene->addItem(statsInLobby);
 
 
+    ///LOBBY------------------------------------------------------------>
+
+
+    QSize buttonSize(500, 50);
+    startSpielButton = new QPushButton( "Neues Spiel", this);
+    startSpielButton->setGeometry(      (this->width() - buttonSize.width()) / 2 + 150, 550, buttonSize.width(), buttonSize.height());
+    startSpielButton->setFont(QFont("times", 20));
+    startSpielButton->setStyleSheet( "background-color: #3cbaa2; border: 1px solid black; border-radius: 5px;" );
+    //button 2
+    leaveGameLobbyButton = new QPushButton( "Zurück zum Chat", this);
+    leaveGameLobbyButton->setGeometry(  (this->width() - buttonSize.width()) / 2 + 150, 610, buttonSize.width(), buttonSize.height());
+    leaveGameLobbyButton->setFont(QFont("times", 20));
+    leaveGameLobbyButton->setStyleSheet( "background-color: #3cbaa2; border: 1px solid black; border-radius: 5px;" );
+
+    showOverLaysButton = new QPushButton( "OL An/Aus" , this );
+    showOverLaysButton->setGeometry( 60 , 650, 100, 30);
+    showOverLaysButton->setStyleSheet( "background-color: #3cbaa2; border: 1px solid black; border-radius: 5px;" );
+
+
+    //background picture && container für lobby items
+    picturePos = QPoint(540, 200); // move background whitout moving its item
+
+    lobbyBackGround = new QGraphicsRectItem(0, 0, 2120, 1192);
+    lobbyBackGround->setBrush(QBrush(QImage(":/wormio_game/Ressources/slitherIo.png")));
+    lobbyBackGround->setPos( -1 * picturePos );
+
+
+
+    //--->Overlays
+    //der ramen und "vater" aller items darinnen
+    messageBox = new QGraphicsRectItem(picturePos.x(), picturePos.y(), 1100, 650, lobbyBackGround);
+    messageBox->setPos( (this->width() - messageBox->rect().width()) / 2, 50);
+
+    statsOverLay = new QGraphicsRectItem( picturePos.x() + 150, picturePos.y() + 20, 500, 200,  messageBox );
+    playerListOverLay = new QGraphicsRectItem( picturePos.x() + 780, picturePos.y() + 20, 300, 450,  messageBox );
+
+    //setUp Brush & Pen from all overlaysd:
+    this->showOverLays = false;
+    onShowOverLaysButtonClicked(); // setUp all overlays
+    //<--
+
+    listOfYourStats = new QGraphicsTextItem(messageBox);
+    listOfYourStats->setDefaultTextColor(Qt::cyan);
+    listOfYourStats->setFont(QFont("times", 30));
+    listOfYourStats->setPos( picturePos.x() + 200, picturePos.y() + 50 );
+
+    listOfPlayingPlayer = new QGraphicsTextItem(messageBox);
+    listOfPlayingPlayer->setDefaultTextColor(Qt::gray);
+    listOfPlayingPlayer->setFont(QFont("times", 14));
+    listOfPlayingPlayer->setPos( picturePos.x() + 800, picturePos.y() + 50 );
+
+
+    //unten rechts die infos
+    tipps = new QGraphicsTextItem(lobbyBackGround);
+    tipps->setPlainText("Mit der Taste 'e' kommst du aus dem Spiel zurück ins Menü!\nMit der Taste 'q' kommst du sofort in den Chat zurück!\nBei der Taste '?' passiert gar nichts. (:");
+    tipps->setPos(750 + picturePos.x(), 710 + picturePos.y());
+    tipps->setDefaultTextColor(Qt::gray);
+
+
+    //add whole lobby-parentItems to scene
+    hideGameLobby();
+    scene->addItem(lobbyBackGround);
+
+
+    //Connect LobbyButons:
+    connect(startSpielButton, SIGNAL(clicked()), this, SLOT(onStartButtonClicked()));
+    connect(leaveGameLobbyButton, SIGNAL(clicked()), this, SLOT(onBackToChatButtonClicked()));
+    connect(showOverLaysButton, SIGNAL(clicked()), this, SLOT(onShowOverLaysButtonClicked()));
 
     //Connect Signals and Slots
+    //sceneRect Changes => RePos items:
     connect(this->scene, SIGNAL(sceneRectChanged(QRectF)), this, SLOT(sceneRectChanged(QRectF)));
-
-    //connect miniMap
-    //rePosMap
     connect(this, SIGNAL( sceneRectChanged(QPointF, QPointF) ), miniMap, SLOT( sceneRectChanged(QPointF, QPointF) ));
-    //rePosPlayer
-    connect(player, SIGNAL(movedTo( QPointF, double)), miniMap, SLOT(playerPosChanched(QPointF , double)));
-
-    //repos text in player
     connect(this, SIGNAL( sceneRectChanged(QPointF, QPointF) ), player, SLOT( sceneRectChanged(QPointF, QPointF)) );
+    //rePosPlayer in miniMap
+    connect(player, SIGNAL(movedTo( QPointF, double)), miniMap, SLOT(playerPosChanched(QPointF , double)));
+    //connect lose funktion to stopgame
+    connect(player, SIGNAL(lose()), this, SLOT(playerLose()));
 
-    connect(player, SIGNAL(lose()), this, SLOT(stopGame()));
-
-    Koords = new QGraphicsSimpleTextItem();
-    Koords->setBrush(Qt::white);
-    scene->addItem(Koords);
-
-
-    //make it default invisible
+    //make gameStuff invisible
     stopGame();
-    hideGameLobby();
-
-    //Lobby:
-
-    lobyMessage->setText("     Drücke die Taste <j> um das Spiel zu starten!\nDrücke die Taste <e> um zum Chat zurückzukehren!");
-    lobyMessage->setFont(QFont("opensans", 25, 100));
-    lobyMessage->setPen(QPen(QBrush(Qt::blue), 1));
-
-    statsInLobby->setPen(QPen(QBrush(Qt::cyan), 1));
-    statsInLobby->setFont(QFont("times", 25, 100));;
 
 }
 
 Game::~Game()
 {
     std::cout << "~Game()" << std::endl;
+
 
     delete player;
     player = nullptr;
@@ -103,25 +142,74 @@ Game::~Game()
     delete mapBorder;
     mapBorder = nullptr;
 
-    //debug
-    delete Koords;
-    Koords = nullptr;
-
-    delete MouseKoords;
-    MouseKoords = nullptr;
-    //...|
-
     delete scene;
     scene = nullptr;
 
 }
 
-void Game::mouseMoveEvent(QMouseEvent *event)
+
+
+void Game::stopGame() // connected mit lose()
 {
-    player->mousePosChanged( mapToScene( event->pos() ));
-    MouseKoords->setText("Mouse-Pos: x" + QString::number(event->x()) + " y=" + QString::number(event->y())
-                         + "\n -> MaptoScene: x=" + QString::number(mapToScene(event->pos()).x()) + " + y=" + QString::number(mapToScene(event->pos()).y()) );
+    player->stop();
+    if(player->getPoints() > highscore)
+        highscore = player->getPoints();
+
+    mapBorder->hide();
+    miniMap->hide();
+
 }
+
+void Game::playerLose()
+{
+    stopGame();
+    showGameLobby();
+}
+
+
+void Game::startGame()
+{
+    mapBorder->show();
+    miniMap->show();
+
+
+    player->start();
+}
+
+void Game::hideGameLobby()
+{
+    this->startSpielButton->hide();
+    this->leaveGameLobbyButton->hide();
+    this->lobbyBackGround->hide();
+    this->showOverLaysButton->hide();
+
+}
+
+void Game::showGameLobby(bool fromLobby)
+{
+    this->lobbyBackGround->setPos( mapToScene( -1 * picturePos ) ) ;
+/*//*/    listOfPlayingPlayer->setPlainText("1. Platz: Markus: 10 Punkte\n2. <Du>: 0\n....: ...");
+
+
+    listOfYourStats->setPlainText("Dein letzter Score: " + QString::number( player->getPoints() ) +
+                                "\nDein Highscore: " + QString::number( highscore ) + "\n....: ...");
+
+    if( fromLobby )
+        this->startSpielButton->setText("Starte ein Spiel");
+    else
+        this->startSpielButton->setText("Nochmal spielen");
+
+
+
+    this->startSpielButton->show();
+    this->leaveGameLobbyButton->show();
+    this->showOverLaysButton->show();
+    this->lobbyBackGround->show();
+
+}
+
+
+
 
 void Game::mousePressEvent(QMouseEvent *)
 {
@@ -137,77 +225,67 @@ void Game::keyPressEvent(QKeyEvent *event)
 {
     if(event->key() == Qt::Key_E) {
         stopGame();
+        showGameLobby();
+    } else if (event->key() == Qt::Key_Q) {
+        stopGame();
         emit wantLeaveGame();
-    } else if (event->key() == Qt::Key_J) {
-        startGame();
     }
 
 }
 
-
 void Game::sceneRectChanged(const QRectF &)
 {
-    QPointF min = QPointF( mapToScene(this->pos()) ),
-            max = QPointF( mapToScene( QPoint( this->width() + this->x(), this->height() + this->y() ) ) );
-    emit sceneRectChanged(min, max);
-
-
-    Koords->setText("SceneRect: x=" + QString::number(scene->sceneRect().x()) + " y=" + QString::number(scene->sceneRect().y())  );
-    Koords->setPos( min.x() + 900, max.y() - 80 );
-    MouseKoords->setPos( min.x() + 900, max.y() - 60);
+    emit sceneRectChanged(mapToScene(this->pos()), mapToScene( QPoint( this->width() + this->x(), this->height() + this->y() )) );
 }
 
-void Game::startGame()
+
+void Game::onStartButtonClicked()
+{
+    this->hideGameLobby();
+    this->startGame();
+}
+
+void Game::onBackToChatButtonClicked()
 {
     hideGameLobby();
-
-    mapBorder->show();
-    miniMap->show();
-    Koords->show();
-    MouseKoords->show();
-
-    player->start();
+    emit wantLeaveGame();
 }
 
-void Game::stopGame() // connected mit lose()
+void Game::onShowOverLaysButtonClicked()
 {
-    player->stop();
-    if(player->getPoints() > highscore)
-        highscore = player->getPoints();
+    if( (showOverLays = !showOverLays) ) {
 
-    mapBorder->hide();
-    miniMap->hide();
-    Koords->hide();
-    MouseKoords->hide();
+        messageBox->setPen(QPen(Qt::gray, 2));
+        messageBox->setBrush(QBrush(QColor::fromRgb(255, 255, 255, 30)));
+
+        statsOverLay->setPen(QPen(QBrush(Qt::gray), 2));
+        statsOverLay->setBrush(QBrush(QColor::fromRgb(255, 255, 255, 30)));
+
+        playerListOverLay->setPen(QPen(QBrush(Qt::gray), 2));
+        playerListOverLay->setBrush(QBrush(QColor::fromRgb(255, 255, 255, 30)));
 
 
-    showGameLobby();
+    } else {
 
+        messageBox->setPen(Qt::NoPen);
+        messageBox->setBrush(QBrush());
+
+        statsOverLay->setPen(Qt::NoPen);
+        statsOverLay->setBrush(QBrush());
+
+        playerListOverLay->setPen(Qt::NoPen);
+        playerListOverLay->setBrush(QBrush());
+
+
+    }
 }
 
-
-void Game::showGameLobby()
+void Game::mouseMoveEvent(QMouseEvent *event)
 {
-    if(player->getPoints())
-        this->statsInLobby->setText("   Bester Score: " + QString::number(highscore) + "\nDein letzter Score: " +QString::number( player->getPoints() ) + "\n      Noch ein Spiel?");
-    else
-        this->statsInLobby->setText("");
-
-    auto pos = QPointF( mapToScene(this->pos()) );
-
-    statsInLobby->setPos( pos + QPointF(400, 250) );
-    lobyMessage->setPos( pos + QPointF(150, 400) );
-
-    statsInLobby->show();
-    lobyMessage->show();
-
+    std::cout << " QGraphicsView( " << event->x() << " | " << event->y() << " ) --> Scene( " << mapToScene(event->pos()).x() << " | " << mapToScene( event->pos() ).y() << " )" << std::endl;
 }
 
-void Game::hideGameLobby()
-{
-    this->lobyMessage->hide();
-    this->statsInLobby->hide();
-}
+
 
 
 

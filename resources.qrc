@@ -4,5 +4,6 @@
         <file>wormio_game/Ressources/slitherio_background_543a4c3cc8.jpg</file>
         <file>wormio_game/Ressources/'background.png'</file>
         <file>wormio_game/Ressources/border.png</file>
+        <file>wormio_game/Ressources/slitherIo.png</file>
     </qresource>
 </RCC>

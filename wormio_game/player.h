@@ -66,7 +66,6 @@ public:
     ~Player();
 
     //input ( from game-Object )
-    void mousePosChanged(QPointF mousePos);
     void boost( bool boost );
 
     void start();
