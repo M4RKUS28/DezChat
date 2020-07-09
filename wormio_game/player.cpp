@@ -1,21 +1,12 @@
 #include "player.h"
 
 Player::Player(QGraphicsScene *scene, QVector< QPair<QBrush, QPen> > muster, QGraphicsView *mainView, QRectF map)
-    : scene(scene), mainView(mainView), map(map), moveLastTimer(0), muster(muster)
+    : scene(scene), mainView(mainView), map(map), moveLastTimer(0), isInGame(false), muster(muster)
 {
     // init objects
-
-    scoreText = new QGraphicsSimpleTextItem();
-    scoreText->setBrush(QColor(Qt::white));
-    scene->addItem(scoreText);
-
-    lengthText = new QGraphicsSimpleTextItem();
-    lengthText->setBrush(QColor(Qt::white));
-    scene->addItem(lengthText);
-
-    thinknessText = new QGraphicsSimpleTextItem();
-    thinknessText->setBrush(QColor(Qt::white));
-    scene->addItem(thinknessText);
+    scoreInfos = new QGraphicsTextItem();
+    scoreInfos->setDefaultTextColor(Qt::white);
+    scene->addItem(scoreInfos);
 
 
     moveTimer = new QTimer(this);
@@ -29,12 +20,6 @@ Player::Player(QGraphicsScene *scene, QVector< QPair<QBrush, QPen> > muster, QGr
     //setup setting
     setSpeed(initSpeed);
     resetData();
-
-
-
-    //test:
-    debugDirectionLine = new QGraphicsLineItem;
-    scene->addItem(debugDirectionLine);
 
 }
 
@@ -52,13 +37,8 @@ Player::~Player()
     rotateTimer = nullptr;
 
     //scene deletes items
-
 }
 
-void Player::setMusterVec(const QVector<QPair<QBrush, QPen> > &value)
-{
-    muster = value;
-}
 
 bool Player::inGame() const
 {
@@ -75,6 +55,11 @@ QPair<QBrush, QPen> Player::getMuster()
             musterPos = 0;
     }
     return ret;
+}
+
+int Player::getLength() const
+{
+    return length;
 }
 
 
@@ -103,40 +88,55 @@ void Player::resetData()
     points = 0;
     musterPos = 0;
 
-    //init worm
-    for(int i = 0; i < length; i++) {
-        WormPart * wp = new WormPart(radius, getMuster(), scale);
-        Worm.prepend( wp );
-        scene->addItem( wp );
-    }
 
 
 }
 
-void Player::start()
+void Player::initWormAt(QPoint startPos)
+{
+    //init worm
+    for(int i = 0; i < length; i++) {
+        WormPart * wp = new WormPart(radius, getMuster(), scale);
+        Worm.prepend( wp );
+        wp->setPos( startPos );
+        scene->addItem( wp );
+    }
+}
+
+
+
+void Player::start(QPoint at)
 {
     if(inGame())
         return;
 
     resetData();
+    initWormAt( at );
+
     moveTimer->start();
     rotateTimer->start();
     isInGame = true;
 
+    emit sendDataToPeers("GM=INIT=" + QString::number( at.x() ) + "," + QString::number( at.y() )  );
 
     //...
-    for( int i = 0; i < 2000; i++)
+    for( int i = 0; i < 200; i++)
         addPoint();
 
 }
 
 void Player::stop()
 {
-//    if(!inGame())
-//        return; // do not drop points if was not ingame bevore
+    if(!inGame())
+        return; // do not drop points if was not ingame bevore
 
     moveTimer->stop();
     rotateTimer->stop();
+
+
+
+    //drop points....
+    emit sendDataToPeers("GM=DIED");
 
     //rm old Worm: && ---> drop points
     for( auto e : Worm) {
@@ -172,7 +172,7 @@ void Player::move()
     }
 
     if(Worm.length() <= 2) {
-        std::cout << " Error: Worm legth <= 0" << std::endl;
+        std::cout << " Error: Worm legth <= 2" << std::endl;
         QApplication::exit(-1);
     }
 
@@ -182,21 +182,21 @@ void Player::move()
         Worm.move(Worm.size() - 1, 1);
         Worm.at(1)->setPos(Worm.at(0)->pos().x() , Worm.at(0)->pos().y()  );
         Worm.at(1)->setRotation(Worm.at(0)->rotation() );
+        emit sendDataToPeers("GM=M.L.TO=" + QString::number( Worm.at(0)->pos().x() ) + "," + QString::number( Worm.at(0)->pos().y() ) );
 
     }
 
     //move player
     double theta = Worm.at(0)->rotation() - 90;
-    double dy = speed * qSin(qDegreesToRadians(theta));
-    double dx = speed * qCos(qDegreesToRadians(theta));
-
-    //move player
-    Worm.at(0)->moveBy( dx, dy );
+    Worm.at(0)->moveBy( speed * qCos(qDegreesToRadians(theta)), speed * qSin(qDegreesToRadians(theta)) );
 
     //move player to mid of qGView
     scene->setSceneRect(Worm.at(0)->sceneBoundingRect());
 
+    //update miniMap
     emit movedTo(Worm.at(0)->pos(), Worm.at(0)->rotation());
+    emit sendDataToPeers("GM=M.H.TO=" + QString::number( Worm.at(0)->pos().x() ) + "," + QString::number( Worm.at(0)->pos().y() ) );
+
 
 
     //Check for losing.....
@@ -249,6 +249,8 @@ void Player::setRadius(double r)
     //update existing items
     for( auto &e : Worm)
         e->updateRadius( radius );
+
+    emit sendDataToPeers("GM=NEW_RADIUS=" + QString::number( radius ) );
 }
 
 void Player::dropPoint()
@@ -269,6 +271,7 @@ void Player::increaseWorm()
     wp->setPos(-2000, -2000); // so that you can't see them
     scene->addItem( wp );
 
+    emit sendDataToPeers("GM=NEW_LENGTH=" + QString::number( length ));
 }
 
 void Player::decreaseWorm()
@@ -280,6 +283,8 @@ void Player::decreaseWorm()
 
     scene->removeItem(wp);
     delete wp;
+
+    emit sendDataToPeers("GM=NEW_LENGTH=" + QString::number( length ));
 }
 
 
@@ -329,10 +334,10 @@ void Player::removePoint()
 }
 
 
-void Player::setScale(double scale)
-{
-    this->scale = scale;
-}
+//void Player::setScale(double scale)
+//{
+//    this->scale = scale;
+//}
 
 
 size_t Player::getPoints() const
@@ -342,24 +347,10 @@ size_t Player::getPoints() const
 
 void Player::sceneRectChanged(QPointF min , QPointF max)
 {
-//    std::cout << " MIN( " << min.x() << " | " << min.y() << " ) ; MAX( " << max.x() << " | " << max.y() << " )" << std::endl;
-
-
-    scoreText->setPos( min.x() + 10, max.y() - 35 );
-    scoreText->setText( "Score: " + QString::number( points ) );
-
-    lengthText->setPos( min.x() + 10, max.y() - 55 );
-    lengthText->setText( "Length: " + QString::number( length ) );
-
-    thinknessText->setPos( min.x() + 10, max.y() - 75 );
-    thinknessText->setText( "Thikness: " + QString::number( points ) + " - Scale: " + QString::number(scale) );
+    scoreInfos->setPos(min.x() + 5, max.y() - 65);
+    scoreInfos->setPlainText( "Score: " + QString::number( points ) + "\nLength: " + QString::number( length ));
 }
 
-
-int Player::getLength() const
-{
-    return length;
-}
 
 
 

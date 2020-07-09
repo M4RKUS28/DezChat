@@ -3,7 +3,8 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow), manager(new ConnetionsManager),timerForWarningMSG(0), wrongClientCountCounter(0), oldPrintStyle(false)
+    ui(new Ui::MainWindow), manager(new ConnetionsManager),timerForWarningMSG(0),
+    wrongClientCountCounter(0), printUpDownLoadStatsTimer(0), oldPrintStyle(false)
 {
     ui->setupUi(this);
 
@@ -43,6 +44,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     game = new Game(QSize(1200, 800), this);
     connect(game, SIGNAL(wantLeaveGame()), this, SLOT(leaveGame()));
+    connect( this, SIGNAL( gotGameMsg( QString , Peer *)), game->enemyManager, SLOT( recvedGameMsg( QString, Peer * ) ) );
+    connect( game->player, SIGNAL( sendDataToPeers( QString )), this, SLOT( sendGameMsg( QString ) ) );
 
     ui->chat->addMsg("<i><b><font size=\"12\"><span style=\"color:#5f0\">Spiele Worm.io indem du 'lol' eingibst!</span><</font></b></i>\n", Qt::AlignCenter);
 
@@ -56,10 +59,18 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::timerEvent(QTimerEvent * e)
+void MainWindow::timerEvent(QTimerEvent *)
 {
     manager->sendtoAllPeers("PING=" + QString::number(manager->getConnectionList().size()) );
     timerForWarningMSG++;
+
+    if( (++printUpDownLoadStatsTimer) > 100 /*jede 10 sec*/ && ( printUpDownLoadStatsTimer = 0 ) == 0) {
+        std::cout << " [ INFO ]: UpLoad:   " << manager->getUpLoad() / 1250 /* /10, /1000, *8*/ << " kbit/s" << std::endl;
+        std::cout << " [ INFO ]: DownLoad: " << manager->getDownLoad() / 1250 /* /10, /1000, *8*/ << " kbit/s" << std::endl;
+
+    }
+
+
 }
 
 
@@ -75,7 +86,10 @@ void MainWindow::recvedMSG(Peer *who, QString msg)
     std::string what = msg.toStdString().substr(0, msg.toStdString().find("="));
     std::string value = msg.toStdString().substr(msg.toStdString().find("=") + 1);
 
-    if(what == "PING") {
+    if(what == "GM" ) {
+        emit gotGameMsg( msg.remove(0, msg.indexOf("=") + 1), who );
+
+    } else if(what == "PING") {
         if(manager->getConnectionList().size() < static_cast<size_t>(atoll(value.c_str())) )
             wrongClientCountCounter++;
         if(timerForWarningMSG > 100 && (timerForWarningMSG = 0) == 0)
@@ -275,9 +289,11 @@ void MainWindow::on_inputLine_returnPressed()
 
 void MainWindow::on_Connections_itemDoubleClicked(QListWidgetItem *item)
 {
-    //std::cout << "Item gedoppelklickt: "<<item->text().toStdString() << std::endl;
-    ui->inputLine->setText("/msg " + item->text() + " ");
+    if( item->text().toStdString() != "<Du Selbst>" )
+        ui->inputLine->setText("/msg " + item->text() + " ");
 }
+
+
 
 void MainWindow::joinGame()
 {
@@ -316,5 +332,12 @@ void MainWindow::leaveGame()
     this->ui->Connections->show();
     this->ui->inputLine->show();
     this->ui->label->show();
+
+    this->ui->inputLine->setFocus();
+}
+
+void MainWindow::sendGameMsg(QString msg)
+{
+    manager->sendtoAllPeers( msg );
 }
 

@@ -28,7 +28,10 @@ public:
     void sendtoAllPeers(QString msg);
     std::vector<Peer *> &getConnectionList();
 
-     bool isAdmin;
+    size_t getUpLoad();
+    size_t getDownLoad();
+
+    bool isAdmin;
 
 
 private:

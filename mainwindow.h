@@ -37,7 +37,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     ConnetionsManager *manager;
-    int timerID, timerForWarningMSG, wrongClientCountCounter;
+    int timerID, timerForWarningMSG, wrongClientCountCounter, printUpDownLoadStatsTimer;
     bool oldPrintStyle;
 
 
@@ -49,10 +49,15 @@ public:
 
 public slots:
     void leaveGame();
+    void sendGameMsg( QString msg );
 
 private:
 
     Game * game;
+
+signals:
+    void gotGameMsg(QString msg, Peer * who);
+
 
 };
 

@@ -40,6 +40,7 @@ void ConnetionsManager::sendtoAllPeers(QString msg)
     //send msg to all peers
     for (auto &e : Connections)
         e->send_to(msg);
+
 }
 
 
@@ -48,6 +49,21 @@ std::vector<Peer *> &ConnetionsManager::getConnectionList()
     return Connections;
 }
 
+size_t ConnetionsManager::getUpLoad()
+{
+    size_t sum = 0;
+    for ( auto &e : getConnectionList() )
+        sum += e->cutUpLoad();
+    return sum;
+}
+
+size_t ConnetionsManager::getDownLoad()
+{
+    size_t sum = 0;
+    for ( auto &e : getConnectionList() )
+        sum += e->cutDownLoad();
+    return sum;
+}
 
 
 int ConnetionsManager::start_Thread(bool PORT_BASED, std::vector<ConnetionsManager::PC> computers)

@@ -26,6 +26,8 @@ public:
     ~Game();
 
     void showGameLobby( bool fromLobby = false);
+    EnemyManager * enemyManager;
+    Player * player;
 
 private:
     void hideGameLobby();
@@ -50,8 +52,6 @@ private:
 
     //Game
     QGraphicsScene * scene;
-    Player * player;
-    EnemyManager * enemyManager;
     QGraphicsRectItem * mapBorder;
     MiniMap * miniMap;
 

@@ -1,7 +1,7 @@
 #include "peer.h"
 
 Peer::Peer(const CLIENT &cli)
-    : cli_v1(cli), isCLIENT(true), stop(false), is_Admin(false), name("UNKNOWN")
+    : cli_v1(cli), isCLIENT(true), stop(false), is_Admin(false), name("UNKNOWN"), upLoad(0), downLoad(0)
 {
     this->cli_v1.autoCleanUpInTheEnd = false;
     this->cli_v2.autoCleanUpInTheEnd = false;
@@ -11,7 +11,8 @@ Peer::Peer(const CLIENT &cli)
 }
 
 Peer::Peer(const client_TCP_Lib &cli, std::string ip_connectedTo, unsigned short port_connectedTo)
-    :  cli_v2(cli), isCLIENT(false), stop(false), is_Admin(false), port_connectedTo(port_connectedTo), name("UNKNOWN"), ip_connectedTo(ip_connectedTo)
+    :  cli_v2(cli), isCLIENT(false), stop(false), is_Admin(false), port_connectedTo(port_connectedTo), name("UNKNOWN"),
+      ip_connectedTo(ip_connectedTo), upLoad(0), downLoad(0)
 {
     this->cli_v1.autoCleanUpInTheEnd = false;
     this->cli_v2.autoCleanUpInTheEnd = false;
@@ -36,13 +37,17 @@ Peer::~Peer()
 
 void Peer::send_to(QString msg)
 {
-    msg.push_back('|');
+    if(*msg.end() != '|')
+        msg.push_back('|');
 
     if( ((isCLIENT) ? cli_v1.send_(msg.toStdString().c_str(), static_cast<unsigned>(msg.toStdString().length()) )   :
                       send(cli_v2.getConnectionSocket(), msg.toStdString().c_str(), static_cast<unsigned>(msg.toStdString().length()), 0)) <= 0 ) {
         std::cerr << "DEBUG: emit -> send failed to: " << this->getFullName().toStdString() << std::endl;
         emit sendFailed(this);
     }
+
+    upLoad += msg.length();
+
 }
 
 int Peer::startReciver()
@@ -135,6 +140,20 @@ void Peer::setJoinTime(std::string time)
     joinTime = time;
 }
 
+size_t Peer::cutUpLoad()
+{
+    size_t ret = upLoad;
+    upLoad = 0;
+    return ret;
+}
+
+size_t Peer::cutDownLoad()
+{
+    size_t ret = downLoad;
+    downLoad = 0;
+    return ret;
+}
+
 void Peer::run()
 {
     std::vector<char> buffer;
@@ -150,6 +169,8 @@ void Peer::run()
             } else
                 buffer.push_back(c);
         } while (c != '|' && ! stop);
+
+        downLoad += buffer.size();
 
         if(buffer.data() && buffer.size() > 0) {
             buffer.pop_back();

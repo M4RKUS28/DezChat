@@ -21,6 +21,7 @@ public:
     void updateRadius( double rNew );
     void updateScale( double scale );
 
+
 };
 
 #endif // WORMPART_H

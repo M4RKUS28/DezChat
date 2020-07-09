@@ -39,6 +39,8 @@ public:
     void setName(std::string name);
     void setJoinTime(std::string time);
 
+    size_t cutUpLoad();
+    size_t cutDownLoad();
 
 
 private:
@@ -51,6 +53,8 @@ private:
     bool stop, is_Admin;
     unsigned short port_connectedTo;
     std::string name, ip_connectedTo, joinTime;
+
+    size_t upLoad, downLoad;
 
 signals:
     void recvdMessage(Peer * who, QString msg);

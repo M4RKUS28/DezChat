@@ -110,6 +110,9 @@ Game::Game(QSize MainWindowSize, QWidget *parant)
     connect(leaveGameLobbyButton, SIGNAL(clicked()), this, SLOT(onBackToChatButtonClicked()));
     connect(showOverLaysButton, SIGNAL(clicked()), this, SLOT(onShowOverLaysButtonClicked()));
 
+///    ------------------------------------------------------_>
+
+
     //Connect Signals and Slots
     //sceneRect Changes => RePos items:
     connect(this->scene, SIGNAL(sceneRectChanged(QRectF)), this, SLOT(sceneRectChanged(QRectF)));
@@ -173,7 +176,7 @@ void Game::startGame()
     miniMap->show();
 
 
-    player->start();
+    player->start( QPoint(1500, 1500 ) );
 }
 
 void Game::hideGameLobby()
@@ -282,7 +285,7 @@ void Game::onShowOverLaysButtonClicked()
 
 void Game::mouseMoveEvent(QMouseEvent *event)
 {
-    std::cout << " QGraphicsView( " << event->x() << " | " << event->y() << " ) --> Scene( " << mapToScene(event->pos()).x() << " | " << mapToScene( event->pos() ).y() << " )" << std::endl;
+//    std::cout << " QGraphicsView( " << event->x() << " | " << event->y() << " ) --> Scene( " << mapToScene(event->pos()).x() << " | " << mapToScene( event->pos() ).y() << " )" << std::endl;
 }
 
 
