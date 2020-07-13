@@ -11,7 +11,7 @@
 
 #include <QPushButton>
 #include <QPalette>
-
+#include <QTimer>
 
 #include "player.h"
 #include "enemymanager.h"
@@ -29,6 +29,14 @@ public:
     EnemyManager * enemyManager;
     Player * player;
 
+    //debug MSG
+    QGraphicsTextItem * netWorkTransfereMsg;
+    QGraphicsTextItem * fpsTextItem;
+    QTimer * fpsTimer;
+    double frameRate;
+
+public slots:
+
 private:
     void hideGameLobby();
     void startGame();
@@ -42,6 +50,7 @@ private slots:
     void onStartButtonClicked();
     void onBackToChatButtonClicked();
     void onShowOverLaysButtonClicked();
+    void fpsTimerTimeout();
 
 
 
@@ -54,6 +63,10 @@ private:
     QGraphicsScene * scene;
     QGraphicsRectItem * mapBorder;
     MiniMap * miniMap;
+    QGraphicsRectItem * startRect;
+
+
+
 
     //Lobby
     unsigned long highscore;
@@ -84,6 +97,7 @@ private:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    void drawForeground(QPainter *painter, const QRectF &rect) override;
 
 
 signals:

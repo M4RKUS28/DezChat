@@ -1,7 +1,7 @@
 #include "peer.h"
 
 Peer::Peer(const CLIENT &cli)
-    : cli_v1(cli), isCLIENT(true), stop(false), is_Admin(false), name("UNKNOWN"), upLoad(0), downLoad(0)
+    : cli_v1(cli), isCLIENT(true), stop(false), is_Admin(false), inGame(false), name("UNKNOWN"), upLoad(0), downLoad(0)
 {
     this->cli_v1.autoCleanUpInTheEnd = false;
     this->cli_v2.autoCleanUpInTheEnd = false;
@@ -11,7 +11,7 @@ Peer::Peer(const CLIENT &cli)
 }
 
 Peer::Peer(const client_TCP_Lib &cli, std::string ip_connectedTo, unsigned short port_connectedTo)
-    :  cli_v2(cli), isCLIENT(false), stop(false), is_Admin(false), port_connectedTo(port_connectedTo), name("UNKNOWN"),
+    :  cli_v2(cli), isCLIENT(false), stop(false), is_Admin(false), inGame(false), port_connectedTo(port_connectedTo), name("UNKNOWN"),
       ip_connectedTo(ip_connectedTo), upLoad(0), downLoad(0)
 {
     this->cli_v1.autoCleanUpInTheEnd = false;
@@ -58,7 +58,7 @@ int Peer::startReciver()
     return this->isRunning() ? 0 : 1;
 }
 
-void Peer::sendInfoData(const unsigned short ownServerListeningPort, bool adminstate)
+void Peer::sendInfoData(const unsigned short ownServerListeningPort, bool adminstate, bool inGame)
 {
     this->send_to("PORT=" + QString::number(ownServerListeningPort));
     this->send_to("JOIN_TIME=" + QTime::currentTime().toString() );
@@ -66,6 +66,7 @@ void Peer::sendInfoData(const unsigned short ownServerListeningPort, bool admins
     this->send_to("VERSION=" + QString::number(VERSION) );
 
     this->send_to("adminstatus=" + QString(adminstate ? "true" : "false"));
+    this->send_to("IN_GAME=" + QString(inGame ? "true" : "false"));
 
 }
 
@@ -118,6 +119,11 @@ QString Peer::getJoinTime() const
 bool Peer::isAdmin() const
 {
     return is_Admin;
+}
+
+bool Peer::isInGame() const
+{
+    return inGame;
 }
 
 void Peer::set_isAdmin(bool state)
@@ -185,3 +191,4 @@ void Peer::run()
     }
     emit recvdFailed(this);
 }
+

@@ -4,7 +4,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), manager(new ConnetionsManager),timerForWarningMSG(0),
-    wrongClientCountCounter(0), printUpDownLoadStatsTimer(0), oldPrintStyle(false)
+    wrongClientCountCounter(0), printUpDownLoadStatsTimer(100), oldPrintStyle(false)
 {
     ui->setupUi(this);
 
@@ -46,8 +46,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(game, SIGNAL(wantLeaveGame()), this, SLOT(leaveGame()));
     connect( this, SIGNAL( gotGameMsg( QString , Peer *)), game->enemyManager, SLOT( recvedGameMsg( QString, Peer * ) ) );
     connect( game->player, SIGNAL( sendDataToPeers( QString )), this, SLOT( sendGameMsg( QString ) ) );
+    // sendMSGTO
+    connect( game->enemyManager, SIGNAL(wantSendMsgTO(QString, Peer * )), this, SLOT(sendGameMsgTo(QString, Peer *)) ); //connect enemyManager want send MSg to Peer x with func. in mainW.
+    connect( game->player, SIGNAL(sendDataTo(QString, Peer * )), this, SLOT(sendGameMsgTo(QString, Peer *)) ); //connect play want send MSg to Peer x with func. in mainW.
 
-    ui->chat->addMsg("<i><b><font size=\"12\"><span style=\"color:#5f0\">Spiele Worm.io indem du 'lol' eingibst!</span><</font></b></i>\n", Qt::AlignCenter);
+//    ui->chat->addMsg("<i><b><font size=\"12\"><span style=\"color:#5f0\">Spiele Worm.io indem du 'lol' eingibst!</span><</font></b></i>\n", Qt::AlignCenter);
+
+
 
 }
 
@@ -65,8 +70,11 @@ void MainWindow::timerEvent(QTimerEvent *)
     timerForWarningMSG++;
 
     if( (++printUpDownLoadStatsTimer) > 100 /*jede 10 sec*/ && ( printUpDownLoadStatsTimer = 0 ) == 0) {
-        std::cout << " [ INFO ]: UpLoad:   " << manager->getUpLoad() / 1250 /* /10, /1000, *8*/ << " kbit/s" << std::endl;
-        std::cout << " [ INFO ]: DownLoad: " << manager->getDownLoad() / 1250 /* /10, /1000, *8*/ << " kbit/s" << std::endl;
+        double up = static_cast<double>(manager->cutUpLoad()) / 1250.0,
+               down =  static_cast<double>(manager->cutDownLoad()) / 1250.0;
+        std::cout << " [ INFO ]: UpLoad:   " << up /* /10, /1000, *8*/ << " kbit/s" << std::endl;
+        std::cout << " [ INFO ]: DownLoad: " << down /* /10, /1000, *8*/ << " kbit/s" << std::endl;
+        game->netWorkTransfereMsg->setPlainText( "🠕 " + QString::number(up, 'f', 1) + " kbit/s\n🠗 " + QString::number(down, 'f', 1) + " kbit/s" );
 
     }
 
@@ -156,6 +164,17 @@ void MainWindow::recvedMSG(Peer *who, QString msg)
                 std::cout << " -> Selber niedrigere Version => Wait for Closesocket from " << who->getFullName().toStdString() << std::endl;
         }
 
+    } else if ( what == "SYSCALL") {
+        ui->chat->addMsg("<i><b><font size=\"10\"><span style=\"color:blue\">" + QString::fromStdString(value) +"</span><</font></b></i>\n", Qt::AlignCenter);
+
+    } else if ( what == "IN_GAME" ) {
+        if (value == "true") {
+            who->set_isAdmin(true);
+        } else if ( value == "false") {
+            who->set_isAdmin(false);
+        }
+
+
     } else if(what == "") {
         std::cout << "INVALID MSG: '" << msg.toStdString() << "'" << std::endl;
 
@@ -171,7 +190,7 @@ void MainWindow::recvedMSG(Peer *who, QString msg)
                 ui->chat->addMsg( who->getName() + " hat sich vom Admin degratiert.", Qt::AlignCenter, "orange");
             }
         }
-    } else {
+    }  else {
         std::cout << "ERROR: UNKNOWN MSG: '" << msg.toStdString() << std::endl;
         ui->chat->addMsg(QString::fromStdString("<ERROR> Unbekannter Nachrichtentype: '"+ what +"' mit value='"  + value + "'"), Qt::AlignCenter, "red" );
     }
@@ -255,6 +274,13 @@ void MainWindow::on_inputLine_returnPressed()
             ui->chat->addMsg("\t/msg <Client> <msg>\t-> Privatnachricht an diesen Client");
             ui->chat->addMsg("\t\t\t     Tip: Doppelklick auf den Namen rechts in der Liste.");
             ui->chat->addMsg("\t/setPrintStyle <1/2>\t-> AusgabeAussehen: Style 1 oder 2.");
+            if( manager->isAdmin ) {
+                ui->chat->addMsg("\n\t->Admin options...");
+                ui->chat->addMsg("\t/login *admin*\t-> Wechsle in den Admin Modus.");
+                ui->chat->addMsg("\t/logout\t\t-> Beende den Admin Modus.");
+                ui->chat->addMsg("\t/syscall <msg>\t-> Systemnachricht: Alig.-Center,S.G.-10,Fa.-Blau,\"Schräg\"");
+
+            }
 
 
         } else if (line.startsWith("/login ", Qt::CaseInsensitive)) {
@@ -271,6 +297,11 @@ void MainWindow::on_inputLine_returnPressed()
                 manager->isAdmin = false;
                 ui->chat->addMsg("<Console> Adminstatus removed", Qt::AlignCenter, "red");
             }
+
+        } else if (manager->isAdmin && line.startsWith("/syscall ", Qt::CaseInsensitive)) {
+            line.remove(0, 9);
+            ui->chat->addMsg("<i><b><font size=\"10\"><span style=\"color:blue\">" + line +"</span><</font></b></i>\n", Qt::AlignCenter);
+            manager->sendtoAllPeers("SYSCALL=" + line );
 
         } else {
             ui->chat->addMsg("<Console>: Error: Unbekannter Befehl: '" + line + "'", Qt::AlignCenter, "red");
@@ -300,6 +331,9 @@ void MainWindow::joinGame()
     ui->chat->addMsg(QTime::currentTime().toString() + ": Wechsle in die Spiel Lobby...", Qt::AlignCenter, Qt::gray);
     manager->sendtoAllPeers("MSG=...spielt jetzt Worm.io !");
 
+    //setRecivingGamemessages to true:
+    this->manager->inGame = true;
+    manager->sendtoAllPeers("IN_GAME=true");
 
     this->setFixedSize(1200, 800);
 
@@ -325,8 +359,6 @@ void MainWindow::leaveGame()
     //make game invisible
     this->game->hide();
 
-
-
     //set old things visible
     this->ui->chat->show();
     this->ui->Connections->show();
@@ -334,10 +366,28 @@ void MainWindow::leaveGame()
     this->ui->label->show();
 
     this->ui->inputLine->setFocus();
+
+    //setRecivingGamemessages to false:
+    this->manager->inGame = false;
+    manager->sendtoAllPeers("IN_GAME=false");
 }
 
 void MainWindow::sendGameMsg(QString msg)
 {
-    manager->sendtoAllPeers( msg );
+    for ( auto &e : manager->getConnectionList() )
+        if( e->isInGame() || true /*<-----------------------------------------------------------------------------------------------*/ )
+            e->send_to( msg );
+}
+
+void MainWindow::sendGameMsgTo(QString msg, Peer *who)
+{
+    auto &list = manager->getConnectionList();
+    auto it = std::find( list.begin(), list.end(), who);
+    if( it == list.end() ) {
+          std::cout << " -> Send to PEER X failed: PEER X was not in List!!" << std::endl;
+          return;
+    } else
+        (*it)->send_to( msg );
+
 }
 

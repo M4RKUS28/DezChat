@@ -17,11 +17,16 @@
 #include <QtMath>
 
 
+#include "../ConnectionsStuff/peer.h" // Peer *
 
 //setting:
 
 
-constexpr static double initSpeed  = 3;
+constexpr static int moveTimerInterval = 20 / 2;
+constexpr static int rotateTimerInterval = 20;
+
+
+constexpr static double initSpeed  = 3 / 2;
 constexpr static double boostSpeed = 8;
 
 constexpr static double initRadius = 25;
@@ -54,10 +59,13 @@ constexpr static double droppointEveryXRounds = 6;
 constexpr static double defaultRotation = 90;
 constexpr static double turnSpeed = 5;
 
+constexpr static int minCollectionsForCheck = 7;
 
 
 
-class Player : public QObject
+#include <QThread>
+
+class Player : public /*QThread/, public*/ QObject
 {
     Q_OBJECT
 public:
@@ -68,17 +76,23 @@ public:
     //input ( from game-Object )
     void boost( bool boost );
 
-    void start( QPoint at );
+    void start_( QPoint at );
+    //void run();
     void stop();
 
     int getLength() const;
     size_t getPoints() const;
     bool inGame() const;
 
+    QString getWormAsString();
+
+    QTimer * daweiRAP;
 
 public slots:
     //resize Text Items
     void sceneRectChanged( QPointF min, QPointF max  );
+
+    void daweiRandomAddPoints();
 
 signals:
     void lose();
@@ -86,6 +100,7 @@ signals:
     void movedTo( QPointF newPos, double rotation);
 
     void sendDataToPeers(QString msg);
+    void sendDataTo(QString msg, Peer * who);
 
 private:
 
@@ -123,6 +138,8 @@ private:
     size_t points;
     bool doBoost, isInGame;
     QVector < QPair < QBrush, QPen > > muster;
+
+//    bool shouldStop;
 
 
 private slots:

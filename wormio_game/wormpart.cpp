@@ -3,8 +3,8 @@
 
 
 
-WormPart::WormPart(double radius, QPair<QBrush, QPen> muster, double scale, QGraphicsItem *parant)
-    : QGraphicsEllipseItem /*QGraphicsRectItem */ (parant)
+WormPart::WormPart(bool isEnemy, double radius, QPair<QBrush, QPen> muster, double scale, QGraphicsItem *parant)
+    : QGraphicsEllipseItem /*QGraphicsRectItem */ (parant), isEnemy( isEnemy )
 {
     //Rect
     this->setRect( -1 * radius, -1 * radius, 2* radius , 2 * radius); // size

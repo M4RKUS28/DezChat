@@ -1,8 +1,8 @@
 #include "enemymanager.h"
 
 
-EnemyManager::EnemyManager(QGraphicsScene *scene)
-    : scene(scene)
+EnemyManager::EnemyManager(Player *player, QGraphicsScene *scene)
+    : scene(scene), player(player), isManagingEnemys( false )
 {
 //    recvedGameMsg("MOVEDTO=456.01,45.90", nullptr);
 }
@@ -12,51 +12,74 @@ EnemyManager::~EnemyManager()
     std::cout << "~EnemyManager()" << std::endl;
 }
 
+void EnemyManager::startManagingEnemys()
+{
+    isManagingEnemys = true;
+}
+
+void EnemyManager::stopManagingEnemys()
+{
+    isManagingEnemys = false;
+
+    for ( auto &e : enemyByPeerMap.keys() ) {
+        enemyByPeerMap.value(e)->destrsoySelf();
+        delete enemyByPeerMap.value(e);
+        enemyByPeerMap.remove( e );
+    }
+
+}
+
 void EnemyManager::recvedGameMsg(QString msg, Peer *who)
 {
     QString what = msg.left( msg.indexOf( '=' ) );
     QString value = msg.mid( msg.indexOf( '=' ) + 1 );
 
-    if( what == "INIT" ) {
 
-        //check if msg is ok....
-        int pos1, pos2;
-        bool ok = true;
+    if( what == "SCORE") { // SCORE=NAME,SCORE
+        //manage ScoreList
 
-        if( (pos1 = value.indexOf(",")) == -1) {
-            std::cerr << " Couldn't find ',' => Invalid INIT Message!!" << std::endl;
-            return;
-        }
 
-        QPointF startPos = QPointF( value.left(pos1).toDouble(&ok), value.mid( pos1 + 1 ).toDouble(&ok) );//INIT=x,y
+    }
 
-        if( !ok ) {
-            std::cerr << " Some cast failed => Invalid INIT Message!!" << std::endl;
-            return;
-        }
 
+    if( isManagingEnemys == false )
+        return;
+
+    if( what == "INIT_REQ" || what == "INIT_ANSWER" ) { // INIT_*=Length,Radius%Pos1x,Pos1y%....
 
         if( enemyByPeerMap.contains( who ) ) {
+            std::cerr << "WARNING: Have to remove old Worm cause new Init!!" << std::endl;
             enemyByPeerMap[who]->destrsoySelf();
             delete enemyByPeerMap[who];
-            if( enemyByPeerMap.remove(who) != 0) {
+            if( enemyByPeerMap.remove(who) == 0) {
                 std::cerr << ("Remove old CLient failed!!") << std::endl;
                 return;
             }
         }
 
-        Enemy * newEnemy = new Enemy( startPos, scene);
+        Enemy * newEnemy = new Enemy( value, scene);
         enemyByPeerMap.insert(who, newEnemy);
 
+        if( what == "INIT_REQ" ) {
+            emit wantSendMsgTO( "GM=INIT_ANSWER=" + player->getWormAsString() , who );
+            std::cout << "GOT INIT: " << value.toStdString() << " --> send init: " << ("GM=INIT_ANSWER=" + player->getWormAsString()).toStdString() << std::endl;
+
+
+        }
 
     }
-    else if ( what == "M.H.TO" || what == "M.L.TO" )
+
+
+    if ( ! enemyByPeerMap.contains( who ) ) {
+        //??..
+        std::cout << " ENEMY NOT IN MAP: " << who << std::endl;
+        return;
+    }
+
+
+    if ( what == "M.H.TO" || what == "M.L.TO" )
     {
-        if( ! enemyByPeerMap.contains( who ) )
-        {
-            std::cerr << ( "MOVEDTO: Enemy does't exist in Map!!" ) << std::endl;
-            return;
-        }
+
         int pos = value.indexOf(",");
         bool ok = true;
 
@@ -84,10 +107,6 @@ void EnemyManager::recvedGameMsg(QString msg, Peer *who)
     }
     else if ( what == "NEW_LENGTH" || what == "NEW_RADIUS")
     {
-        if( ! enemyByPeerMap.contains( who ) ) {
-            std::cerr << ( "NEW_LENGTH || NEW_RADIUS: Enemy does't exist in Map!!" ) << std::endl;
-            return;
-        }
         bool ok = true;
 
         unsigned length = value.toUInt( &ok );
@@ -105,10 +124,6 @@ void EnemyManager::recvedGameMsg(QString msg, Peer *who)
 
     } else if ( what == "DIED" ) {
 
-        if( ! enemyByPeerMap.contains( who ) ) {
-            std::cerr << ( "DIED: Enemy does't exist in Map!!" ) << std::endl;
-            return;
-        }
         enemyByPeerMap[who]->destrsoySelf();
         delete enemyByPeerMap[who];
         enemyByPeerMap.remove(who);

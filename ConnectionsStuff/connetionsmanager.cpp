@@ -2,7 +2,7 @@
 
 
 ConnetionsManager::ConnetionsManager()
-    : isAdmin(false), stop(false)
+    : isAdmin(false), inGame(false), stop(false)
 {
     server = new TCP_SERVER();
     server->autoCleanUpInTheEnd = false;
@@ -49,7 +49,7 @@ std::vector<Peer *> &ConnetionsManager::getConnectionList()
     return Connections;
 }
 
-size_t ConnetionsManager::getUpLoad()
+size_t ConnetionsManager::cutUpLoad()
 {
     size_t sum = 0;
     for ( auto &e : getConnectionList() )
@@ -57,7 +57,7 @@ size_t ConnetionsManager::getUpLoad()
     return sum;
 }
 
-size_t ConnetionsManager::getDownLoad()
+size_t ConnetionsManager::cutDownLoad()
 {
     size_t sum = 0;
     for ( auto &e : getConnectionList() )
@@ -193,7 +193,7 @@ int ConnetionsManager::acceptClient()
     }
 
     //Send name, port, ip ...
-    newPeer->sendInfoData(server->getListeningPort(), isAdmin);
+    newPeer->sendInfoData(server->getListeningPort(), isAdmin, inGame);
 
     emit ConnectionsListChanged();
     //emit showMSG(QString::fromStdString(" -> New Client: " + newCLIENT.getIpAddress() + ":" + std::to_string(newCLIENT.getPort())));
@@ -224,7 +224,7 @@ void ConnetionsManager::TryConnectorFinished(TryConnector *who)
         }
 
         //Send name, port, ip ...
-        newPeer->sendInfoData(server->getListeningPort(), isAdmin);
+        newPeer->sendInfoData(server->getListeningPort(), isAdmin, inGame);
 
         emit ConnectionsListChanged();
         //emit showMSG(QString::fromStdString(" -> New Client: " + who->getIp() + ":" + std::to_string(who->getPort())));

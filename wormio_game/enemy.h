@@ -17,7 +17,7 @@ class Enemy : public QObject
 {
     Q_OBJECT
 public:
-    Enemy(QPointF startPos, QGraphicsScene * scene);
+    Enemy(QString initWorm, QGraphicsScene * scene);
 
     void destrsoySelf();
     void moveHeadTo(QPointF newPos);
@@ -26,7 +26,6 @@ public:
     void updateRadius( double radius );
 
     QGraphicsScene * scene;
-
 
     QGraphicsItemGroup * enemyAsGroup;
 

@@ -1,14 +1,53 @@
 #include "enemy.h"
 
 
-
-Enemy::Enemy(QPointF startPos , QGraphicsScene *scene)
+Enemy::Enemy(QString initWOrm , QGraphicsScene *scene)
     : scene(scene), length(initLength), radius( initRadius )
 {
-    std::cout << "Start: " << startPos.x() << " - " << startPos.y() << " with: Length=" << initLength << std::endl;
+    std::cout << "INIT: " << initWOrm.toStdString() << std::endl;
 
     enemyAsGroup = new QGraphicsItemGroup();
     scene->addItem( enemyAsGroup );
+
+    //i,p1,p2,p3 => lW=3,lS=4
+    //init Worm
+    QStringList initMsgParts = initWOrm.split( "%" );
+    for ( int i = 0; i < initMsgParts.length(); ++i ) {
+
+        bool ok1 = true, ok2 = true;
+        QStringList subParts = initMsgParts.at(i).split(",");
+
+        if(subParts.length() != 2) {
+            std::cerr << "ERROR invalid subPart in WormINIt!!!" << std::endl;
+            continue;
+        }
+
+        double part1 = subParts.at( 0 ).toDouble( &ok1 );
+        double part2 = subParts.at( 1 ).toDouble( &ok2 );
+
+        if( !ok1 || !ok2) {
+            std::cerr << " ERROR: CONVERT TO DOUBLE FAILED: IN init new Enemy" << std::endl;
+        }
+
+
+        if( i == 0 ) {
+            if( initMsgParts.length() - 1 != static_cast<int>(part1) ) {
+                std::cerr << " ERROR: InitMsgLength != WormLength!!" << std::endl;
+            } else {
+                length = part1;
+                radius = part2;
+            }
+        } else {
+
+            WormPart * nwp = new WormPart( true, radius, QPair<QBrush, QPen>(QBrush(QImage(":/wormio_game/Ressources/border.png")), QPen()), 1);
+            Worm.push_back( nwp );
+
+            nwp->setPos(part1, part2);
+            enemyAsGroup->addToGroup( nwp );
+            //scene->addItem(nwp);
+
+        }
+    }
 
 }
 
@@ -16,17 +55,26 @@ void Enemy::destrsoySelf()
 {
     std::cout << "I LOOOOOSED" << std::endl;
 
-
+    for( int i = 0; i < Worm.length(); i++ ) {
+        scene->removeItem( Worm.at(i) );
+        delete Worm.at(i);
+        if( i % 5 == 0);
+//            QGraphicsEllipseItem * newPoint = new QGraphicsEllipseItem(10, 10, 20, 20);
+    }
+    Worm.clear();
 }
+
+
 
 void Enemy::moveHeadTo(QPointF newPos)
 {
-//    std::cout << " moveTo: " << newPos.x() << " " << newPos.y() << std::endl;
     if(Worm.size())
         Worm.at(0)->setPos( newPos );
-
-
+    else
+        std::cerr << "Can't move Head... doesn't exist!" << std::endl;
 }
+
+
 
 void Enemy::moveLastTo(QPointF newPos)
 {
@@ -35,7 +83,6 @@ void Enemy::moveLastTo(QPointF newPos)
         return;
     }
 
-    //move last behind vect(0) && set pos from vec(0) && move vect 0
     Worm.move(Worm.size() - 1, 1);
     Worm.at(1)->setPos( newPos.x() , newPos.y()  );
 ///    Worm.at(1)->setRotation(Worm.at(0)->rotation() );
@@ -46,40 +93,38 @@ void Enemy::moveLastTo(QPointF newPos)
 
 void Enemy::updateLength(unsigned newLength)
 {
-    std::cout << "New Length: " << newLength << std::endl;
+    while ( newLength != length ) {
 
+        if( newLength > length ) {
+            length++;
 
-    if( newLength > length || true ) {
-        //create new Part --> Radius == Worm[0].radius
+            WormPart * nwp = new WormPart( true, radius, QPair<QBrush, QPen>(QBrush(QImage(":/wormio_game/Ressources/border.png")), QPen()), 1);
+            Worm.push_back( nwp );
+            nwp->setPos(-200, -2000);
 
-        WormPart * nwp = new WormPart( radius, QPair<QBrush, QPen>(Qt::green, QPen()), 1);
-        Worm.push_back( nwp );
+            //enemyAsGroup->addToGroup( nwp );
+            scene->addItem(nwp);
 
-        nwp->setPos(1500, 1500);
-        //enemyAsGroup->addToGroup( nwp );
-        scene->addItem(nwp);
-        std::cout << "IN SCENE? " << scene->items().contains( nwp ) << std::endl;
+        } else if (newLength < length ) {
+            length--;
 
+            if( length > initLength ) {
+                auto wp = Worm.back();
+                Worm.pop_back();
 
-
-    } else if (newLength < length ) {
-
-
-
+                scene->removeItem(wp);
+                delete wp;
+            }
+        }
     }
-
-    length = newLength;
 }
+
+
 
 void Enemy::updateRadius(double radius)
 {
-    std::cout << "New Radius: " << radius << std::endl;
-
-    for( auto &wp : Worm ) {
+    for( auto &wp : Worm )
         wp->updateRadius( radius );
-
-        //...
-    }
 
     this->radius = radius;
 }

@@ -14,16 +14,29 @@ class EnemyManager : public QObject
     Q_OBJECT
 public:
 
-    EnemyManager( QGraphicsScene * scene);
+    EnemyManager( Player * player, QGraphicsScene * scene);
     ~EnemyManager();
-    QGraphicsScene *scene;
 
+    QGraphicsScene *scene;
+    Player * player;
     QMap< const Peer *, Enemy * > enemyByPeerMap;
 
+    void startManagingEnemys();
+    void stopManagingEnemys();
+
+
+private:
+    bool isManagingEnemys;
 
 
 public slots:
     void recvedGameMsg(QString msg, Peer * who );
+
+signals:
+    void wantSendMsgTO(QString msg, Peer * who );
+
+
+
 
 
 };

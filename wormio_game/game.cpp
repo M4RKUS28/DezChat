@@ -4,6 +4,8 @@
 Game::Game(QSize MainWindowSize, QWidget *parant)
     : QGraphicsView(parant), highscore(0), showOverLays( true )
 {
+
+
     this->hide();
 
     //Init Objects:
@@ -34,10 +36,35 @@ Game::Game(QSize MainWindowSize, QWidget *parant)
     QVector < QPair < QBrush, QPen > > muster;
     muster.push_back( QPair< QBrush, QPen >( QBrush(Qt::blue), QPen(QColor::fromRgb(0, 0, 0, 40), 2) ) );
     muster.push_back( QPair< QBrush, QPen >( QBrush(QImage( ":/wormio_game/Ressources/border.png" )), QPen(QColor::fromRgb(0, 0, 0, 40), 2) ) );
-    muster.push_back( QPair< QBrush, QPen >( QBrush(Qt::gray), QPen(QColor::fromRgb(0, 0, 0, 40), 2) ) );
 
     player = new Player(scene, muster, this, QRectF(0, 0, 3000, 3000));
-    enemyManager = new EnemyManager(scene);
+    enemyManager = new EnemyManager(player, scene);
+    frameRate = (50);
+//debug msgs
+    netWorkTransfereMsg = new QGraphicsTextItem();
+    netWorkTransfereMsg->setDefaultTextColor(Qt::white);
+    scene->addItem(netWorkTransfereMsg);
+
+
+    fpsTextItem = new QGraphicsTextItem("-1 fps");
+    fpsTextItem->setDefaultTextColor(Qt::white);
+    scene->addItem( fpsTextItem );
+    fpsTimer = new QTimer( this );
+    connect(fpsTimer, SIGNAL(timeout()), this, SLOT(fpsTimerTimeout()));
+    fpsTimer->start(1000);
+
+
+
+    //dawei:
+
+
+    startRect = new QGraphicsRectItem( -150, -150, 300, 300 );
+    startRect->setPos(1500, 1500);
+    startRect->setPen(QPen(Qt::white, 3));
+    scene->addItem(startRect);
+
+
+
 
 
 
@@ -157,9 +184,13 @@ void Game::stopGame() // connected mit lose()
     player->stop();
     if(player->getPoints() > highscore)
         highscore = player->getPoints();
+    enemyManager->stopManagingEnemys();
+
 
     mapBorder->hide();
     miniMap->hide();
+    netWorkTransfereMsg->hide();
+    fpsTextItem->hide();
 
 }
 
@@ -174,9 +205,11 @@ void Game::startGame()
 {
     mapBorder->show();
     miniMap->show();
+    netWorkTransfereMsg->show();
+    fpsTextItem->show();
 
-
-    player->start( QPoint(1500, 1500 ) );
+    enemyManager->startManagingEnemys();
+    player->start_( QPoint(1500, 1500 ) );
 }
 
 void Game::hideGameLobby()
@@ -236,9 +269,23 @@ void Game::keyPressEvent(QKeyEvent *event)
 
 }
 
+void Game::fpsTimerTimeout()
+{
+    fpsTextItem->setPlainText(QString( QString::number( frameRate, 'f', 2 ) + " fps"));
+    frameRate = 0;
+}
+
+void Game::drawForeground(QPainter *, const QRectF &)
+{
+    frameRate++;
+}
+
 void Game::sceneRectChanged(const QRectF &)
 {
     emit sceneRectChanged(mapToScene(this->pos()), mapToScene( QPoint( this->width() + this->x(), this->height() + this->y() )) );
+
+    netWorkTransfereMsg->setPos( mapToScene(this->pos()) + QPointF(10, 5) );
+    fpsTextItem->setPos( mapToScene(this->pos()) + QPointF(10, 60) );
 }
 
 
@@ -283,7 +330,8 @@ void Game::onShowOverLaysButtonClicked()
     }
 }
 
-void Game::mouseMoveEvent(QMouseEvent *event)
+
+void Game::mouseMoveEvent(QMouseEvent *)
 {
 //    std::cout << " QGraphicsView( " << event->x() << " | " << event->y() << " ) --> Scene( " << mapToScene(event->pos()).x() << " | " << mapToScene( event->pos() ).y() << " )" << std::endl;
 }

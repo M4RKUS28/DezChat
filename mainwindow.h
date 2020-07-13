@@ -8,8 +8,7 @@
 #include "wormio_game/game.h"
 
 #include <iostream>
-
-#include <qdebug.h>
+#include <algorithm>
 
 
 
@@ -50,6 +49,7 @@ public:
 public slots:
     void leaveGame();
     void sendGameMsg( QString msg );
+    void sendGameMsgTo(QString msg, Peer * who);
 
 private:
 

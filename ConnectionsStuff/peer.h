@@ -19,7 +19,7 @@ public:
 
     void send_to(QString msg);
     int startReciver();
-    void sendInfoData(const unsigned short ownServerListeningPort, bool adminstate);
+    void sendInfoData(const unsigned short ownServerListeningPort, bool adminstate, bool inGame);
 
     int closeSocket();
     bool isConnected();
@@ -43,6 +43,8 @@ public:
     size_t cutDownLoad();
 
 
+    bool isInGame() const;
+
 private:
     void run();
 
@@ -50,7 +52,7 @@ private:
     client_TCP_Lib cli_v2;
 
     const bool isCLIENT;
-    bool stop, is_Admin;
+    bool stop, is_Admin, inGame;
     unsigned short port_connectedTo;
     std::string name, ip_connectedTo, joinTime;
 

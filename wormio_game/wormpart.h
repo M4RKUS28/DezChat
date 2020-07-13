@@ -15,11 +15,13 @@ class WormPart : public QObject, public QGraphicsEllipseItem // */ QGraphicsRect
 {
     Q_OBJECT
 public:
-    WormPart(double radius, QPair<QBrush, QPen> muster, double scale, QGraphicsItem * parant = nullptr);
+    WormPart(bool isEnemy, double radius, QPair<QBrush, QPen> muster, double scale, QGraphicsItem * parant = nullptr);
     ~WormPart();
 
     void updateRadius( double rNew );
     void updateScale( double scale );
+
+    bool isEnemy;
 
 
 };
